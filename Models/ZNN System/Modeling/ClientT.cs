@@ -46,25 +46,27 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// </summary>
 		private bool _IsResponseWaiting;
 
-		/// <summary>
-		/// The current query
-		/// </summary>
-		public Query CurrentQuery { get; set; }
+        /// <summary>
+        /// The current query
+        /// </summary>
+        public Query CurrentQuery { get; set; }
 
-		/// <summary>
-		/// Response time of the last query to the server in ms
-		/// </summary>
-		public int LastResponseTime { get; private set; }
+        /// <summary>
+        /// Response time of the last query to the server in ms
+        /// </summary>
+        [Range(0,100, OverflowBehavior.Error)]
+        public int LastResponseTime { get; private set; }
 
-		/// <summary>
-		/// The connected Proxy
-		/// </summary>
-		public ProxyT ConnectedProxy { get; protected set; }
+        /// <summary>
+        /// The connected Proxy
+        /// </summary>
+        public ProxyT ConnectedProxy { get; protected set; }
 
-		/// <summary>
-		/// Random generator
-		/// </summary>
-		private Random Random { get; }
+        /// <summary>
+        /// Random generator
+        /// </summary>
+        [NonSerializable]
+        private Random Random { get; }
 
 		/// <summary>
 		/// Creates a new client instance
@@ -74,6 +76,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		{
 			Random = new Random(seed);
 		}
+
+        public ClientT(Random random, ProxyT proxy)
+        {
+            Random = random;
+            Connect(proxy);
+        }
 
 		/// <summary>
 		/// Creates a new Client and connect it to the proxy
@@ -133,7 +141,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			{
 				_CurrentResponseTime++;
 			}
-			else if(Random.Next(100) < 50)
+			else //if(Random.Next(100) < 50)
 			{
 				StartQuery();
 			}

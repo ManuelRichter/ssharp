@@ -22,6 +22,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using SafetySharp.Modeling;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
@@ -110,8 +111,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			// Add a few clients with Queries
 			for(int i = 0; i < clientCount; i++)
 			{
-				var client = ClientT.GetNewClient(Proxy, i);
-				Query.GetNewQuery(client);
+				Query.GetNewQuery(new ClientT(new Random(i), Proxy));
 			}
 
 			// Add a few server

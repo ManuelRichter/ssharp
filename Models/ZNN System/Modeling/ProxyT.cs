@@ -57,15 +57,15 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// </summary>
 		public List<ClientT> ConnectedClients { get; }
 
-		/// <summary>
-		/// The connected Clients
-		/// </summary>
-		public List<Query> Queries { get; }
+        /// <summary>
+        /// The connected Clients
+        /// </summary>
+        public List<Query> Queries { get; }
 
-		/// <summary>
-		/// The connected Servers
-		/// </summary>
-		public List<ServerT> ConnectedServers { get; }
+        /// <summary>
+        /// The connected Servers
+        /// </summary>
+        public List<ServerT> ConnectedServers { get; }
 
 		/// <summary>
 		/// Average response time of the servers from the last querys.
@@ -109,14 +109,19 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// </summary>
 		public void IncrementServerPool()
 		{
-			var inactiveServer = ConnectedServers.FirstOrDefault(s => !s.IsServerActive);
+#if faultServerActivate
+            var inactiveServer = ConnectedServers.FirstOrDefault(s => !s.IsServerActive);
 			inactiveServer?.Activate();
-		}
+#else
+            foreach (ServerT serv in ConnectedServers)
+                if (serv.Activate()) break;
+#endif
+        }
 
-		/// <summary>
-		/// Dectivates the server with the lowest load and adds the queries to the first active server
-		/// </summary>
-		public virtual void DecrementServerPool()
+        /// <summary>
+        /// Deactivates the server with the lowest load and adds the queries to the first active server
+        /// </summary>
+        public virtual void DecrementServerPool()
 		{
 			if(ActiveServerCount > 1)
 			{
@@ -179,7 +184,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <param name="query">The query</param>
 		public void SelectServer(Query query)
 		{
-			//AdjustServers();
+			AdjustServers(); //
 
 			var server = RoundRobinServerSelection();
 			if(server == null)
