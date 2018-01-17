@@ -58,15 +58,17 @@
     <Compile Include="..\..\Source\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Analysis\Act.cs" />
     <Compile Include="Analysis\FaultActivationAttributeTest.cs" />
     <Compile Include="Analysis\FaultActivationTest.cs" />
     <Compile Include="Analysis\FaultCondition.cs" />
     <Compile Include="Analysis\FunctionalTests.cs" />
     <Compile Include="Analysis\ProxyTTest.cs" />
     <Compile Include="Analysis\QueryTest.cs" />
+    <Compile Include="Analysis\QValue.cs" />
     <Compile Include="Analysis\ServerTTest.cs" />
     <Compile Include="Analysis\SimulationTests.cs" />
-    <Compile Include="Analysis\State.cs" />
+    <Compile Include="Analysis\FaultyModel.cs" />
     <Compile Include="Modeling\ClientT.cs" />
     <Compile Include="Modeling\EServerFidelity.cs" />
     <Compile Include="Modeling\FaultActivationAttribute.cs" />

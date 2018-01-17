@@ -8,16 +8,17 @@ using SafetySharp.CaseStudies.ZNNSystem.Modeling;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 {
-    class State
+    class FaultyModel
     {
         public Model model;
         public ArrayList fcs;
         
-        public State(Model m)
+        public FaultyModel(Model m)
         {
             this.model = m;
             fcs = new ArrayList();
         }
+
         /// <summary>
         /// Adds a condition to activate a fault on a server at a specific step
         /// </summary>
@@ -28,6 +29,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         {
             fcs.Add(new FaultCondition(faultNumber, stepToActivate, serverToFault));
             Console.WriteLine("Added Fault " + faultNumber + " at " + stepToActivate + ". step on Server" + serverToFault);
+        }
+
+        public void AddFaultCondition(FaultCondition fc)
+        {
+            this.fcs.Add(fc);
+            Console.WriteLine("Added Fault " + fc.faultNumber + " at " + fc.stepToActivate + ". step on Server" + fc.serverToFault);
         }
     }
 }

@@ -18,8 +18,17 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             this.faultNumber = faultNumber;
             this.stepToActivate = stepToActivate;
             this.serverToFault = serverToFault;
-            this.faultActivated = false;
-        } 
+            this.faultActivated = false; //notused?
+        }
 
+        public string ToString()
+        {
+            return "fault:" + faultNumber + "step:" + stepToActivate + "server:" + serverToFault;
+        }
+        
+        public bool Equals(FaultCondition otherFC)
+        {
+            return (this.faultNumber == otherFC.faultNumber && this.stepToActivate == otherFC.stepToActivate && this.serverToFault == otherFC.serverToFault);
+        }
     }
 }
