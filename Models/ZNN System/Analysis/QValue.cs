@@ -11,7 +11,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         FaultCondition fc;
         Act action;
 
-        float reward;
+        double reward;
 
         public QValue(int fault,int step,int server,int nextFault, int nextServer) //State (fault,step,server) Action (nextFault,nextServer)
         {
@@ -29,12 +29,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             reward = 0.0f;
         }
 
-        public void SetReward(float r)
+        public void SetReward(double r)
         {
             reward = r;
         }
 
-        public float GetReward()
+        public double GetReward()
         {
             return reward;
         }
