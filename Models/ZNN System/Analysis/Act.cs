@@ -26,5 +26,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         {
             return new FaultCondition(this.faultNumber,step,this.serverToFault);
         }
+
+        public bool Equals(Act otherAct)
+        {
+            return this.faultNumber == otherAct.faultNumber && this.serverToFault == otherAct.serverToFault;
+        }
     }
 }

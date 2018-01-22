@@ -42,8 +42,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             Console.WriteLine("Count of active servers:" + proxy.ActiveServerCount);
         }
         
-        private static int modelCount = 5; //number of models to instantiate
-        private static int simSteps = 10; //number of steps to simulate
+        private static int modelCount = 300; //number of models to instantiate/equivalent to episode count
+        private static int simSteps = 4; //number of steps to simulate
 
         private static int serverCount = 3;
         private static int clientCount = 5;
@@ -62,6 +62,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             QValue[] qTable = new QValue[stateSize * actionSize];
             FaultyModel[] fms = new FaultyModel[modelCount];
 
+            double bestReward = 0;
+
             //instantiate models
             for (int i = 0; i < modelCount; i++) fms[i] = new FaultyModel(new Model(serverCount, clientCount));
 
@@ -73,14 +75,17 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             //for (int i = 0; i < modelCount; i++) fms[i].AddFaultCondition(12, 3, 1); 
             FaultCondition lastFc = new FaultCondition(0,0,0);
 
+            //list all faults
+            for (int i = 0; i < fms.First().model.Faults.Length; i++) Console.WriteLine(i + ". " + fms.First().model.Faults[i].Name);
+
             //simulate models
             foreach (FaultyModel fm in fms)
             {
                 var simulator = new SafetySharpSimulator(fm.model);
                 var modelSim = (Model)simulator.Model;
-                for (int i = 0; i < modelSim.Faults.Length; i++) Console.WriteLine(i + ". " + modelSim.Faults[i].Name);
                 
-                for (int i = 0; i <= simSteps; i++)
+                
+                for (int i = 0; i < simSteps; i++)
                 {
                     Act currentAction = ChooseAction(rand, lastFc, ref qTable);
 
@@ -98,9 +103,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
                     //process fault
                     simulator.SimulateStep();
-                    foreach (Query q in modelSim.ActiveQueries) Console.Write("State:" + q.State + " ResponseTime:" + q.Client.LastResponseTime);
-
-                    Console.WriteLine("Servercount:" + modelSim.Proxy.ConnectedServers.Count + " Active:" + modelSim.Proxy.ActiveServerCount);
+                    //foreach (Query q in modelSim.ActiveQueries) Console.Write("State:" + q.State + " ResponseTime:" + q.Client.LastResponseTime);
+                    //Console.WriteLine("Servercount:" + modelSim.Proxy.ConnectedServers.Count + " Active:" + modelSim.Proxy.ActiveServerCount);
                     
                     Feedback(currentAction.ConvertToFC(i),ref qTable, currentAction,i);
                     
@@ -116,7 +120,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                     }
                 }//episode ends here
 
-                
+                //episode cleanup
+                pastFaults.Clear();
+                if (CodeCoverage.coverage > bestReward) bestReward = CodeCoverage.coverage;
+                CodeCoverage.ResetCoverage();
+                PrintQTable(ref qTable);
 
                 //Console.WriteLine(simulator.RuntimeModel.StateVectorLayout);
                 for (int i = 0; i < modelSim.Servers.Count; i++)
@@ -124,7 +132,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
             }
 
-            Console.WriteLine("End of TestFaultActivation");
+            Console.WriteLine("End of TestFaultActivation, best reward:" + bestReward);
         }
 
         private void InitQTable(ref QValue[] qTable)
@@ -157,11 +165,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             Console.WriteLine("Last entry:" + qTable[i - 1].ToString());
         }
 
+        private int epsilon = 60; //60% exploration
 
         private Act ChooseAction(Random rand, FaultCondition lastFc, ref QValue[] qTable)
         {
-            int epsilon = 40; //40% exploration
-
             if (rand.Next(100) < epsilon || lastFc == null)
             {
                 return Explore(rand);
@@ -171,11 +178,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
         private Act Explore(Random rand)
         {
+            Console.WriteLine("Explore:");
             return new Act(rand.Next(numberOfFaults), rand.Next(serverCount));
         }
 
         private Act Exploit(ref QValue[] qTable, FaultCondition lastFc)
         {
+            Console.WriteLine("Exploit:");
             return GetBestAction(ref qTable, lastFc);
         }
 
@@ -203,8 +212,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             double gamma = 0.95f;
             QValue currentQ = new QValue(currentFc, currentAction);
             QValue nextBestQ = new QValue(currentAction.ConvertToFC(step), GetBestAction(ref qTable,currentAction.ConvertToFC(step))); //notsure
-            double reward = 1; //getCodeCoverage(); //TODO
-            //Q_new(s,a) = Q(s,a) + alpha*(r + gamma*max(Q(s_new,a_new) - Q(s,a)))
+            double reward = GetFinalReward(currentAction);
+
+            Console.WriteLine(currentAction.ToString() + " Reward: " + reward);
+
+            //Q_new(s,a) = Q(s,a) + alpha*(r + gamma*max_a_new(Q(s_new,a_new) - Q(s,a)))
             double newQ = currentQ.GetReward() + alpha * (reward + gamma * nextBestQ.GetReward() - currentQ.GetReward());
             qTable[GetIndex(ref qTable, currentQ)].SetReward(newQ);
         }
@@ -216,6 +228,25 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 if (qTable[i].Equals(q)) return i;
             }
             return -1;
+        }
+
+        private Stack<Act> pastFaults = new Stack<Act>();
+
+        private double GetFinalReward(Act currentAct)
+        {
+            foreach (Act a in pastFaults)
+            {
+                if (a.Equals(currentAct)) return 0;
+            }
+            if (pastFaults.Count > 10) pastFaults.Pop();
+            pastFaults.Push(currentAct);
+            return GetCodeCoverage();
+        }
+
+        private double GetCodeCoverage()
+        {
+            double temp = CodeCoverage.GetCoverage();
+            return temp;
         }
         
         /// <summary>
@@ -239,7 +270,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 }
             }
         }
+        private void PrintQTable(ref QValue[] qTable)
+        {
+            for (int i = 0;i<qTable.Length;i++)
+            {
+                Console.WriteLine(qTable[i].ToTable());
+            }
+        }
     }
-
-
 }

@@ -23,6 +23,7 @@
 using System.Collections.Generic;
 using ISSE.SafetyChecking.Modeling;
 using SafetySharp.Modeling;
+using SafetySharp.CaseStudies.ZNNSystem.Analysis;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 {
@@ -219,6 +220,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Activate()
 			{
+                CodeCoverage.IncrementCoverage();
 				return false;
 			}
 		}
@@ -235,7 +237,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Deactivate()
 			{
-				return false;
+                CodeCoverage.IncrementCoverage();
+                return false;
 			}
 		}
 
@@ -244,12 +247,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// </summary>
 		[FaultEffect(Fault = nameof(SetServerFidelityFails))]
 		public class SetServerFidelityFailsEffect : ServerT
-		{
-			/// <summary>
-			/// Current content fidelity level of the server.
-			/// </summary>
-			public override EServerFidelity Fidelity => _Fidelity;
-		}
+		{            
+            /// <summary>
+            /// Current content fidelity level of the server.
+            /// </summary>
+            public override EServerFidelity Fidelity => _Fidelity;
+
+        }
 
 		/// <summary>
 		/// Prevents the server to execute a query
@@ -264,6 +268,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>True if the query was executed</returns>
 			public override bool ExecuteQueryStep(Query query)
 			{
+                CodeCoverage.IncrementCoverage();
 				return false;
 			}
 		}
@@ -302,6 +307,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>True if the query was executed</returns>
 			public override bool ExecuteQueryStep(Query query)
 			{
+                CodeCoverage.IncrementCoverage();
 				return false;
 			}
 
@@ -311,6 +317,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Activate()
 			{
+                CodeCoverage.IncrementCoverage();
 				return false;
 			}
 
@@ -320,7 +327,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Deactivate()
 			{
-				return false;
+                CodeCoverage.IncrementCoverage();
+                return false;
 			}
 
 			/// <summary>
@@ -329,7 +337,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <param name="query">The query</param>
 			public override bool AddQuery(Query query)
 			{
-				return false;
+                CodeCoverage.IncrementCoverage();
+                return false;
 			}
 		}
 	}

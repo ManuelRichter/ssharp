@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ISSE.SafetyChecking.Modeling;
 using SafetySharp.Modeling;
+using SafetySharp.CaseStudies.ZNNSystem.Analysis;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 {
@@ -188,8 +189,15 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 
 			var server = RoundRobinServerSelection();
 			if(server == null)
-				throw new Exception("Cannot select a server");
-			server.AddQuery(query);
+            {
+#if faultCantSelectServer
+                throw new Exception("Cannot select a server");
+#else
+                return;
+#endif
+            }
+
+            server.AddQuery(query);
 			query.SelectedServer = server;
 		}
 
@@ -279,7 +287,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>Selected Server</returns>
 			protected override ServerT RoundRobinServerSelection()
 			{
-				return null;
+                CodeCoverage.IncrementCoverage();
+                return null;
 			}
 		}
 	}

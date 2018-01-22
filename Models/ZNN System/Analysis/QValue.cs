@@ -51,12 +51,23 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
         public bool Equals(QValue q)
         {
-            return q.fc.Equals(q.fc) && q.action.Equals(q.action);
+            return this.fc.Equals(q.fc) && this.action.Equals(q.action);
+        }
+
+        public bool Equals(FaultCondition otherFC)
+        {
+            return this.fc.Equals(otherFC);
         }
 
         public Act getAction()
         {
             return action;
+        }
+
+        public string ToTable()
+        {
+            if (reward != 0)  return "fc:" + "|" + fc.faultNumber + "|" + fc.stepToActivate + "|" + fc.serverToFault + "|" + action.ToString() + "|" + reward;
+            return "";
         }
     }
 }

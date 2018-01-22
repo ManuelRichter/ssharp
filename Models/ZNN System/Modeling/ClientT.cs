@@ -23,6 +23,7 @@
 using System;
 using ISSE.SafetyChecking.Modeling;
 using SafetySharp.Modeling;
+using SafetySharp.CaseStudies.ZNNSystem.Analysis;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 {
@@ -153,12 +154,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		[FaultEffect(Fault = "ConnectionToProxyFails")]
 		public class ConnectionToProxyFailsEffect : ClientT
 		{
-			/// <summary>
-			/// Initialize the Proxy and connect it to the proxy
-			/// </summary>
-			/// <param name="proxy">Connected Proxy</param>
-			protected override void Connect(ProxyT proxy)
+            /// <summary>
+            /// Initialize the Proxy and connect it to the proxy
+            /// </summary>
+            /// <param name="proxy">Connected Proxy</param>
+            protected override void Connect(ProxyT proxy)
 			{
+                CodeCoverage.IncrementCoverage(); 
 				// Cannot connect
 			}
 		}

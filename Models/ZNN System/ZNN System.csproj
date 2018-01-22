@@ -59,6 +59,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Analysis\Act.cs" />
+    <Compile Include="Analysis\CodeCoverage.cs" />
     <Compile Include="Analysis\FaultActivationAttributeTest.cs" />
     <Compile Include="Analysis\FaultActivationTest.cs" />
     <Compile Include="Analysis\FaultCondition.cs" />
