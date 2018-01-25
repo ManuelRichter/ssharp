@@ -42,8 +42,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             Console.WriteLine("Count of active servers:" + proxy.ActiveServerCount);
         }
         
-        private static int modelCount = 300; //number of models to instantiate/equivalent to episode count
-        private static int simSteps = 4; //number of steps to simulate
+        private static int modelCount = 50; //number of models to instantiate/equivalent to episode count
+        private static int simSteps = 10; //number of steps to simulate
 
         private static int serverCount = 3;
         private static int clientCount = 5;
@@ -56,7 +56,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             const int probToActivate = 100; //probability per step to activate the fault
 
             //const for qLearning
-            int stateSize = numberOfFaults * simSteps * serverCount;
+            int stateSize = simSteps;
             int actionSize = numberOfFaults * serverCount;
 
             QValue[] qTable = new QValue[stateSize * actionSize];
@@ -87,11 +87,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 
                 for (int i = 0; i < simSteps; i++)
                 {
-                    Act currentAction = ChooseAction(rand, lastFc, ref qTable);
+                    Act currentAction = ChooseAction(rand, i, ref qTable);
 
                     fm.AddFaultCondition(currentAction.ConvertToFC(i)); //use current step to activate
-                    lastFc = currentAction.ConvertToFC(i);
-
+                    
                     //activate fault
                     if (rand.Next(100) <= probToActivate)
                     {
@@ -106,7 +105,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                     //foreach (Query q in modelSim.ActiveQueries) Console.Write("State:" + q.State + " ResponseTime:" + q.Client.LastResponseTime);
                     //Console.WriteLine("Servercount:" + modelSim.Proxy.ConnectedServers.Count + " Active:" + modelSim.Proxy.ActiveServerCount);
                     
-                    Feedback(currentAction.ConvertToFC(i),ref qTable, currentAction,i);
+                    Feedback(i,ref qTable, currentAction);
                     
                     //deactivate fault (needed?)
                     foreach (FaultCondition fc in fm.fcs)
@@ -137,43 +136,35 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
         private void InitQTable(ref QValue[] qTable)
         {
-            int fault = 0;
             int step = 0;
-            int server = 0;
             int nextFault = 0;
             int nextServer = 0;
             int i = 0;
-
-            for (int f = 0; f < numberOfFaults; f++)
+            
+            for (int s = 0; s < simSteps; s++)
             {
-                for (int s = 0; s < simSteps; s++)
+                for (int nf = 0; nf < numberOfFaults; nf++)
                 {
-                    for (int serv = 0; serv < serverCount; serv++)
+                    for (int nserv = 0; nserv < serverCount; nserv++)
                     {
-                        for (int nf = 0; nf < numberOfFaults; nf++)
-                        {
-                            for (int nserv = 0; nserv < serverCount; nserv++)
-                            {
-                                qTable[i] = new QValue(f, s, serv, nf, nserv);
-                                i++;
-                            }
-                        }
+                        qTable[i] = new QValue( s, nf, nserv);
+                        i++;
                     }
                 }
             }
-
+        
             Console.WriteLine("Last entry:" + qTable[i - 1].ToString());
         }
 
-        private int epsilon = 60; //60% exploration
+        private int epsilon = 30; //30% exploration
 
-        private Act ChooseAction(Random rand, FaultCondition lastFc, ref QValue[] qTable)
+        private Act ChooseAction(Random rand, int step, ref QValue[] qTable)
         {
-            if (rand.Next(100) < epsilon || lastFc == null)
+            if (rand.Next(100) < epsilon)
             {
                 return Explore(rand);
             }
-            else return Exploit(ref qTable, lastFc);
+            else return Exploit(ref qTable, step);
         }
 
         private Act Explore(Random rand)
@@ -182,39 +173,39 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             return new Act(rand.Next(numberOfFaults), rand.Next(serverCount));
         }
 
-        private Act Exploit(ref QValue[] qTable, FaultCondition lastFc)
+        private Act Exploit(ref QValue[] qTable, int step)
         {
             Console.WriteLine("Exploit:");
-            return GetBestAction(ref qTable, lastFc);
+            return GetBestAction(ref qTable, step);
         }
 
         //returns action with highest reward from given state
-        private Act GetBestAction(ref QValue[] qTable, FaultCondition lastFc)
+        private Act GetBestAction(ref QValue[] qTable, int step)
         {
             double maxReward = double.MinValue;
             int bestIndex = 0;
 
             for (int i = 0; i < qTable.Length; i++)
             {
-                if (qTable[i].GetReward() > maxReward && qTable[i].Equals(lastFc))
+                if (qTable[i].GetReward() > maxReward && qTable[i].Equals(step))
                 {
                     maxReward = qTable[i].GetReward();
                     bestIndex = i;
                 }
             }
 
-            return qTable[bestIndex].getAction();
+            return qTable[bestIndex].GetAction();
         }
 
-        private void Feedback(FaultCondition currentFc, ref QValue[] qTable, Act currentAction,int step)
+        private void Feedback(int step, ref QValue[] qTable, Act currentAction)
         {
             double alpha = 0.5f;
             double gamma = 0.95f;
-            QValue currentQ = new QValue(currentFc, currentAction);
-            QValue nextBestQ = new QValue(currentAction.ConvertToFC(step), GetBestAction(ref qTable,currentAction.ConvertToFC(step))); //notsure
+            QValue currentQ = new QValue(step, currentAction);
+            QValue nextBestQ = new QValue(step, GetBestAction(ref qTable,step)); //notsure
             double reward = GetFinalReward(currentAction);
 
-            Console.WriteLine(currentAction.ToString() + " Reward: " + reward);
+            Console.WriteLine(currentAction.ToString() + " reward: " + reward);
 
             //Q_new(s,a) = Q(s,a) + alpha*(r + gamma*max_a_new(Q(s_new,a_new) - Q(s,a)))
             double newQ = currentQ.GetReward() + alpha * (reward + gamma * nextBestQ.GetReward() - currentQ.GetReward());
@@ -236,9 +227,9 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         {
             foreach (Act a in pastFaults)
             {
-                if (a.Equals(currentAct)) return 0;
+                if (a.Equals(currentAct)) return 0.1;
             }
-            if (pastFaults.Count > 10) pastFaults.Pop();
+            if (pastFaults.Count > 3) pastFaults.Pop();
             pastFaults.Push(currentAct);
             return GetCodeCoverage();
         }

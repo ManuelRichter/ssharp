@@ -18,7 +18,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             this.faultNumber = faultNumber;
             this.stepToActivate = stepToActivate;
             this.serverToFault = serverToFault;
-            this.faultActivated = false; //notused?
+            this.faultActivated = false; //not used?
         }
 
         public string ToString()
