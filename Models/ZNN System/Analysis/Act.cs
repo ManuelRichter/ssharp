@@ -17,6 +17,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             this.serverToFault = serverToFault;
         }
 
+        public int GetFault()
+        {
+            return faultNumber;
+        }
+
         public string ToString()
         {
             return "action:" + faultNumber + " server:" + serverToFault;

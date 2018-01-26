@@ -8,22 +8,14 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 {
     class QValue
     {
-        int step;
+        State state;
         Act action;
 
         double reward;
-
-        public QValue(int step,int nextFault, int nextServer) //State (step) Action (nextFault,nextServer)
+        
+        public QValue(State state, Act act)
         {
-            this.step = step;
-            this.action = new Act(nextFault,nextServer);
-
-            reward = 0.0f;
-        }
-
-        public QValue(int step, Act act) //State (step) Action (nextFault,nextServer)
-        {
-            this.step = step;
+            this.state = state;
             this.action = act;
 
             reward = 0.0f;
@@ -41,33 +33,34 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
         public string ToString()
         {
-            return "step:" + step.ToString() + " " + action.ToString();
+            return state.ToString() + " " + action.ToString();
         }
 
-        public bool Equals(int step, Act action)
+        public bool Equals(State state, Act action)
         {
-            return this.step == step && this.action.Equals(action);
+            return this.state.Equals(state) && this.action.Equals(action);
         }
 
         public bool Equals(QValue q)
         {
-            return this.step == q.step && this.action.Equals(q.action);
-        }
 
-        public bool Equals(int step)
-        {
-            return this.step == step;
+            return this.state.Equals(q.state) && this.action.Equals(q.action);
         }
-
+        
         public Act GetAction()
         {
             return action;
         }
 
+        public bool StateEquals(State s)
+        {
+            return this.state.Equals(s);
+        }
+
         public string ToTable()
         {
             if (reward != 0)
-                return "step:" + "|" + this.step + "|" + action.ToString() + "|" + reward + "|";
+                return "State:" + "|" + this.state.ToString() + "|" + action.ToString() + "|" + reward + "|";
             return "";
         }
     }
