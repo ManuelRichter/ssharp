@@ -154,8 +154,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			var server = new ServerT();
 			server.Initialize(Model.DefaultAvailableServerUnits, proxy);
 			if(server.IsInitialized)
+            {
+                CodeCoverage.IncrementCoverage(158);
 				return server;
-			return null;
+            }
+            CodeCoverage.IncrementCoverage(161);
+            return null;
 		}
 
 		/// <summary>
@@ -220,7 +224,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Activate()
 			{
-                CodeCoverage.IncrementCoverage();
 				return false;
 			}
 		}
@@ -237,7 +240,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Deactivate()
 			{
-                CodeCoverage.IncrementCoverage();
                 return false;
 			}
 		}
@@ -268,7 +270,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>True if the query was executed</returns>
 			public override bool ExecuteQueryStep(Query query)
 			{
-                CodeCoverage.IncrementCoverage();
 				return false;
 			}
 		}
@@ -307,7 +308,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>True if the query was executed</returns>
 			public override bool ExecuteQueryStep(Query query)
 			{
-                CodeCoverage.IncrementCoverage();
 				return false;
 			}
 
@@ -317,7 +317,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Activate()
 			{
-                CodeCoverage.IncrementCoverage();
 				return false;
 			}
 
@@ -327,7 +326,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Deactivate()
 			{
-                CodeCoverage.IncrementCoverage();
                 return false;
 			}
 
@@ -337,7 +335,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <param name="query">The query</param>
 			public override bool AddQuery(Query query)
 			{
-                CodeCoverage.IncrementCoverage();
                 return false;
 			}
 		}

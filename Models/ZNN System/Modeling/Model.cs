@@ -45,12 +45,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <summary>
 		/// Defines the value for high response time
 		/// </summary>
-		public static int HighResponseTimeValue = 20;
+		public static int HighResponseTimeValue = 12;
 
 		/// <summary>
 		/// Defines the value for low response time
 		/// </summary>
-		public static int LowResponseTimeValue = 10;
+		public static int LowResponseTimeValue = 11;
 
 		/// <summary>
 		/// Available Budget for server costs.

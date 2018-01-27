@@ -14,10 +14,17 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         {
             this.fault = fault;
         }
-
+        
         public void SetFault(int nr, bool b)
         {
             fault[nr] = b;
+        }
+
+        public bool[] Copy()
+        {
+            bool[] b = new bool[this.fault.Length];
+            this.fault.CopyTo(b,0);
+            return b;
         }
 
         public bool Equals(State s)

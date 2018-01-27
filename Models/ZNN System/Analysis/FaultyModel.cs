@@ -12,11 +12,17 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
     {
         public Model model;
         public ArrayList fcs;
+        public double bestReward = 0;
         
         public FaultyModel(Model m)
         {
             this.model = m;
             fcs = new ArrayList();
+        }
+
+        public ArrayList GetFaultArray()
+        {
+            return fcs;
         }
 
         /// <summary>
@@ -28,13 +34,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         public void AddFaultCondition(int faultNumber, int stepToActivate, int serverToFault)
         {
             fcs.Add(new FaultCondition(faultNumber, stepToActivate, serverToFault));
-            Console.WriteLine("Added Fault " + faultNumber + " at " + stepToActivate + ". step on Server" + serverToFault);
+            Console.WriteLine("Added Fault:" + faultNumber + " Step:" + stepToActivate + " Server:" + serverToFault);
         }
 
         public void AddFaultCondition(FaultCondition fc)
         {
             this.fcs.Add(fc);
-            Console.WriteLine("Added Fault " + fc.faultNumber + " at " + fc.stepToActivate + ". step on Server" + fc.serverToFault);
+            Console.WriteLine("Added Fault:" + fc.faultNumber + " Step:" + fc.stepToActivate + " Server:" + fc.serverToFault);
         }
     }
 }

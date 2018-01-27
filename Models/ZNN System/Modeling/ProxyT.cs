@@ -115,8 +115,14 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			inactiveServer?.Activate();
 #else
             foreach (ServerT serv in ConnectedServers)
-                if (serv.Activate()) break;
+            { 
+                if (serv.Activate())
+                {
+                    CodeCoverage.IncrementCoverage(121);
+                    break;
+                } else CodeCoverage.IncrementCoverage(123);
 #endif
+            }
         }
 
         /// <summary>
@@ -126,7 +132,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		{
 			if(ActiveServerCount > 1)
 			{
-				var server = ConnectedServers.Where(s => s.IsServerActive).Aggregate((currMin, x) => ((currMin == null || x.Load < currMin.Load) ? x : currMin));
+                CodeCoverage.IncrementCoverage(135);
+                var server = ConnectedServers.Where(s => s.IsServerActive).Aggregate((currMin, x) => ((currMin == null || x.Load < currMin.Load) ? x : currMin));
 				server.Deactivate();
 
 				// Add queries to active server
@@ -137,8 +144,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 					newServer.ExecutingQueries.Add(query);
 					query.SelectedServer = newServer;
 				}
-			}
-		}
+			} else CodeCoverage.IncrementCoverage(147);
+        }
 
 		/// <summary>
 		/// Switches the servers to text mode
@@ -163,8 +170,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		internal void SetAllServerFidelity(EServerFidelity fidelity)
 		{
 			foreach(var server in ConnectedServers)
-				server.Fidelity = fidelity;
-			CurrentServerFidelity = fidelity;
+            {
+                server.Fidelity = fidelity;
+            }
+            CurrentServerFidelity = fidelity;
 		}
 
 		/// <summary>
@@ -173,10 +182,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <param name="lastTime">last response time</param>
 		internal void UpdateAvgResponseTime(int lastTime)
 		{
-			if(_LatestResponeTimes.Count >= Model.LastResponseCountForAvgTime)
-				_LatestResponeTimes.RemoveAt(0);
-
-			_LatestResponeTimes.Add(lastTime);
+            if (_LatestResponeTimes.Count >= Model.LastResponseCountForAvgTime)
+            {
+                CodeCoverage.IncrementCoverage(187);
+                _LatestResponeTimes.RemoveAt(0);
+            }
+            else CodeCoverage.IncrementCoverage(190);
+            _LatestResponeTimes.Add(lastTime);
 		}
 
 		/// <summary>
@@ -190,12 +202,14 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			var server = RoundRobinServerSelection();
 			if(server == null)
             {
+                CodeCoverage.IncrementCoverage(205);
 #if faultCantSelectServer
                 throw new Exception("Cannot select a server");
 #else
                 return;
 #endif
             }
+            CodeCoverage.IncrementCoverage(212);
 
             server.AddQuery(query);
 			query.SelectedServer = server;
@@ -207,32 +221,56 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		internal virtual void AdjustServers()
 		{
 			if(ActiveServerCount < 1)
+            {
+                CodeCoverage.IncrementCoverage(225);
 				IncrementServerPool();
+            }
+            CodeCoverage.IncrementCoverage(228);
 
-			if(AvgResponseTime > Model.HighResponseTimeValue)
+            if (AvgResponseTime > Model.HighResponseTimeValue)
 			{
+                CodeCoverage.IncrementCoverage(232);
 				if(TotalServerCosts < Model.MaxBudget)
+                {
+                    CodeCoverage.IncrementCoverage(235);
 					IncrementServerPool();
-				else
+                }
+                else
+                {
+                    CodeCoverage.IncrementCoverage(240);
 					SwitchServerToTextMode();
-			}
-
+                }
+            }
 			else
 			{
+                CodeCoverage.IncrementCoverage(246);
 				if(AvgResponseTime < Model.LowResponseTimeValue)
 				{
+                    CodeCoverage.IncrementCoverage(249);
+
 					// Server costs near limit
 					if(TotalServerCosts > (Model.MaxBudget * 0.75))
+                    {
+                        CodeCoverage.IncrementCoverage(254);
 						DecrementServerPool();
-				}
+                    }
+                }
 				else
 				{
-					// Random increment or decrement server pool
-					if(new Random().Next(0, 2) < 1)
+                    CodeCoverage.IncrementCoverage(260);
+
+                    // Random increment or decrement server pool
+                    if (new Random().Next(0, 2) < 1)
+                    {
+                        CodeCoverage.IncrementCoverage(265);
 						IncrementServerPool();
-					else
-						DecrementServerPool();
-				}
+                    }
+                    else
+                    {
+                        CodeCoverage.IncrementCoverage(270);
+                        DecrementServerPool();
+                    }
+                }
 
 				SwitchServerToMultiMode();
 			}
@@ -244,13 +282,22 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <returns>Selected Server or null if no server available</returns>
 		protected virtual ServerT RoundRobinServerSelection()
 		{
-			if(ConnectedServers.Count > _LastSelectedServer - 1)
-				_LastSelectedServer = -1;
+            if (ConnectedServers.Count > _LastSelectedServer - 1)
+            {
+                CodeCoverage.IncrementCoverage(287);
+                _LastSelectedServer = -1;
+            }
+            else CodeCoverage.IncrementCoverage(290);
 
-			if(ActiveServerCount < 1)
-				return null;
 
-			ServerT selected;
+            if (ActiveServerCount < 1)
+            {
+                CodeCoverage.IncrementCoverage(295);
+                return null;
+            }
+            else CodeCoverage.IncrementCoverage(298);
+
+            ServerT selected;
 			do
 			{
 				selected = ConnectedServers[++_LastSelectedServer];
@@ -287,7 +334,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>Selected Server</returns>
 			protected override ServerT RoundRobinServerSelection()
 			{
-                CodeCoverage.IncrementCoverage();
                 return null;
 			}
 		}

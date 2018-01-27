@@ -93,8 +93,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		{
 			var client = new ClientT(seed);
 			client.Connect(proxy);
-			if(client.ConnectedProxy != null)
-				return client;
+            if (client.ConnectedProxy != null)
+            {
+                CodeCoverage.IncrementCoverage(98);
+                return client;
+            }
+            CodeCoverage.IncrementCoverage(101);
 			return null;
 		}
 
@@ -119,9 +123,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 				_CurrentResponseTime = 0;
 				//CurrentQuery = new Query(this);
 				CurrentQuery.IsExecute = true;
+                CodeCoverage.IncrementCoverage(126);
 				return true;
 			}
-			return false;
+            CodeCoverage.IncrementCoverage(129);
+            return false;
 		}
 
 		/// <summary>
@@ -141,11 +147,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			if(_IsResponseWaiting)
 			{
 				_CurrentResponseTime++;
-			}
+                CodeCoverage.IncrementCoverage(150);
+            }
 			else //if(Random.Next(100) < 50)
 			{
 				StartQuery();
-			}
+                CodeCoverage.IncrementCoverage(155);
+            }
 		}
 
 		/// <summary>
@@ -160,7 +168,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
             /// <param name="proxy">Connected Proxy</param>
             protected override void Connect(ProxyT proxy)
 			{
-                CodeCoverage.IncrementCoverage(); 
 				// Cannot connect
 			}
 		}
