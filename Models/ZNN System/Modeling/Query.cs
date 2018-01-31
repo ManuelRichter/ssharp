@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 using SafetySharp.Modeling;
+using SafetySharp.CaseStudies.ZNNSystem.Analysis;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 {
@@ -96,30 +97,48 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 							 to: EQueryState.QueryToServer,
 							 action: () =>
 							 {
+                                 BranchCoverage.IncrementCoverage(63);
 								 Client.ConnectedProxy.SelectServer(this);
 							 })
 						 .Transition(
 							 from: EQueryState.QueryToServer,
 							 to: EQueryState.OnServer,
-							 guard: SelectedServer != null)
+							 guard: SelectedServer != null,
+                             action: () =>
+                             {
+                                 BranchCoverage.IncrementCoverage(64);
+                             })
 						 .Transition(
 							 from: EQueryState.OnServer,
 							 to: EQueryState.LowFidelityComplete,
-							 guard: SelectedServer.ExecuteQueryStep(this))
-						 .Transition(
+							 guard: SelectedServer.ExecuteQueryStep(this),
+                             action: () =>
+                             {
+                                 BranchCoverage.IncrementCoverage(65);
+                             })
+                         .Transition(
 							 from: EQueryState.LowFidelityComplete,
 							 to: EQueryState.MediumFidelityComplete,
-							 guard: SelectedServer.Fidelity != EServerFidelity.Low && SelectedServer.ExecuteQueryStep(this))
-						 .Transition(
+							 guard: SelectedServer.Fidelity != EServerFidelity.Low && SelectedServer.ExecuteQueryStep(this),
+                             action: () =>
+                             {
+                                 BranchCoverage.IncrementCoverage(66);
+                             })
+                         .Transition(
 							 from: EQueryState.MediumFidelityComplete,
 							 to: EQueryState.HighFidelityComplete,
-							 guard: SelectedServer.Fidelity != EServerFidelity.Medium && SelectedServer.ExecuteQueryStep(this))
-						 .Transition(
+							 guard: SelectedServer.Fidelity != EServerFidelity.Medium && SelectedServer.ExecuteQueryStep(this),
+                             action: () =>
+                             {
+                                 BranchCoverage.IncrementCoverage(67);
+                             })
+                         .Transition(
 							 from: EQueryState.LowFidelityComplete,
 							 to: EQueryState.ResToProxy,
 							 guard: SelectedServer.Fidelity == EServerFidelity.Low && SelectedServer.ExecuteQueryStep(this),
 							 action: () =>
 							 {
+                                 BranchCoverage.IncrementCoverage(68);
 								 SelectedServer.QueryComplete(this);
 							 })
 						 .Transition(
@@ -128,6 +147,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 							 guard: SelectedServer.Fidelity == EServerFidelity.Medium && SelectedServer.ExecuteQueryStep(this),
 							 action: () =>
 							 {
+                                 BranchCoverage.IncrementCoverage(69);
 								 SelectedServer.QueryComplete(this);
 							 })
 						 .Transition(
@@ -136,11 +156,16 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 							 guard: SelectedServer.ExecuteQueryStep(this),
 							 action: () =>
 							 {
+                                 BranchCoverage.IncrementCoverage(70);
 								 SelectedServer.QueryComplete(this);
 							 })
 						 .Transition(
 							 from: EQueryState.ResToProxy,
-							 to: EQueryState.ResToClient)
+							 to: EQueryState.ResToClient,
+                             action: () =>
+                             {
+                                 BranchCoverage.IncrementCoverage(71);
+                             })
 						 .Transition(
 							 from: EQueryState.ResToClient,
 							 to: EQueryState.Completed,
@@ -150,6 +175,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 								 Client.ConnectedProxy.UpdateAvgResponseTime(Client.LastResponseTime);
 								 SelectedServer = null;
 								 IsExecute = false;
+                                 BranchCoverage.IncrementCoverage(72);
 							 });
 		}
 	}

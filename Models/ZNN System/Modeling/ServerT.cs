@@ -142,7 +142,9 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			ConnectedProxy = proxy;
 			proxy.ConnectedServers.Add(this);
 			IsInitialized = true;
-		}
+
+            BranchCoverage.IncrementCoverage(33);
+        }
 
 		/// <summary>
 		/// Gets a new server and connects it to the proxy
@@ -155,10 +157,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			server.Initialize(Model.DefaultAvailableServerUnits, proxy);
 			if(server.IsInitialized)
             {
-                CodeCoverage.IncrementCoverage(158);
+                BranchCoverage.IncrementCoverage(28);
 				return server;
             }
-            CodeCoverage.IncrementCoverage(161);
+            BranchCoverage.IncrementCoverage(27);
             return null;
 		}
 
@@ -168,7 +170,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <returns></returns>
 		public virtual bool Activate()
 		{
-			AvailableServerUnits = MaxServerUnits;
+            BranchCoverage.IncrementCoverage(25);
+            AvailableServerUnits = MaxServerUnits;
 			return true;
 		}
 
@@ -178,7 +181,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <returns></returns>
 		public virtual bool Deactivate()
 		{
-			AvailableServerUnits = 0;
+            BranchCoverage.IncrementCoverage(23);
+            AvailableServerUnits = 0;
 			return true;
 		}
 
@@ -188,7 +192,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <param name="query">The query</param>
 		public virtual bool AddQuery(Query query)
 		{
-			ExecutingQueries.Add(query);
+            BranchCoverage.IncrementCoverage(20);
+            ExecutingQueries.Add(query);
 			return true;
 		}
 
@@ -199,7 +204,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <returns>True if the query was executed</returns>
 		public virtual bool ExecuteQueryStep(Query query)
 		{
-			return ExecutingQueries.IndexOf(query) < AvailableServerUnits;
+            BranchCoverage.IncrementCoverage(19);
+            return ExecutingQueries.IndexOf(query) < AvailableServerUnits;
 		}
 
 		/// <summary>
@@ -208,7 +214,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <param name="query"></param>
 		public void QueryComplete(Query query)
 		{
-			QueryCompleteCount++;
+            BranchCoverage.IncrementCoverage(16);
+            QueryCompleteCount++;
 			ExecutingQueries.Remove(query);
 		}
 
@@ -224,6 +231,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Activate()
 			{
+                BranchCoverage.IncrementCoverage(53);
 				return false;
 			}
 		}
@@ -240,6 +248,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Deactivate()
 			{
+                BranchCoverage.IncrementCoverage(54);
                 return false;
 			}
 		}
@@ -270,6 +279,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>True if the query was executed</returns>
 			public override bool ExecuteQueryStep(Query query)
 			{
+                BranchCoverage.IncrementCoverage(55);
 				return false;
 			}
 		}
@@ -308,6 +318,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>True if the query was executed</returns>
 			public override bool ExecuteQueryStep(Query query)
 			{
+                BranchCoverage.IncrementCoverage(56);
 				return false;
 			}
 
@@ -317,6 +328,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Activate()
 			{
+                BranchCoverage.IncrementCoverage(57);
 				return false;
 			}
 
@@ -326,6 +338,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Deactivate()
 			{
+                BranchCoverage.IncrementCoverage(58);
                 return false;
 			}
 
@@ -335,6 +348,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <param name="query">The query</param>
 			public override bool AddQuery(Query query)
 			{
+                BranchCoverage.IncrementCoverage(59);
                 return false;
 			}
 		}

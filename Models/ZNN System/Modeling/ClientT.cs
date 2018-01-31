@@ -76,10 +76,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		private ClientT(int seed = 0)
 		{
 			Random = new Random(seed);
-		}
+            BranchCoverage.IncrementCoverage(50);
+        }
 
         public ClientT(Random random, ProxyT proxy)
         {
+            BranchCoverage.IncrementCoverage(49);
             Random = random;
             Connect(proxy);
         }
@@ -95,10 +97,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			client.Connect(proxy);
             if (client.ConnectedProxy != null)
             {
-                CodeCoverage.IncrementCoverage(98);
+                BranchCoverage.IncrementCoverage(48);
                 return client;
             }
-            CodeCoverage.IncrementCoverage(101);
+            BranchCoverage.IncrementCoverage(46);
 			return null;
 		}
 
@@ -108,14 +110,15 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <param name="proxy">Connected Proxy</param>
 		protected virtual void Connect(ProxyT proxy)
 		{
-			ConnectedProxy = proxy;
+            BranchCoverage.IncrementCoverage(42);
+            ConnectedProxy = proxy;
 			proxy.ConnectedClients.Add(this);
 		}
 
-		/// <summary>
-		/// Starts new Query
-		/// </summary>
-		public bool StartQuery()
+        /// <summary>
+        /// Starts new Query
+        /// </summary>
+        public virtual bool StartQuery()
 		{
 			if(CurrentQuery.State == EQueryState.Idle || CurrentQuery.State == EQueryState.Completed)
 			{
@@ -123,10 +126,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 				_CurrentResponseTime = 0;
 				//CurrentQuery = new Query(this);
 				CurrentQuery.IsExecute = true;
-                CodeCoverage.IncrementCoverage(126);
+                BranchCoverage.IncrementCoverage(38);
 				return true;
 			}
-            CodeCoverage.IncrementCoverage(129);
+            BranchCoverage.IncrementCoverage(36);
             return false;
 		}
 
@@ -135,7 +138,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// </summary>
 		public void GetResponse()
 		{
-			LastResponseTime = _CurrentResponseTime;
+            BranchCoverage.IncrementCoverage(34);
+            LastResponseTime = _CurrentResponseTime;
 			_IsResponseWaiting = false;
 		}
 
@@ -147,12 +151,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			if(_IsResponseWaiting)
 			{
 				_CurrentResponseTime++;
-                CodeCoverage.IncrementCoverage(150);
+                BranchCoverage.IncrementCoverage(31);
             }
 			else //if(Random.Next(100) < 50)
 			{
 				StartQuery();
-                CodeCoverage.IncrementCoverage(155);
+                BranchCoverage.IncrementCoverage(29);
             }
 		}
 
@@ -168,8 +172,20 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
             /// <param name="proxy">Connected Proxy</param>
             protected override void Connect(ProxyT proxy)
 			{
+                BranchCoverage.IncrementCoverage(51);
 				// Cannot connect
 			}
+
+            /// <summary>
+            /// Starts new Query
+            /// </summary>
+            public override bool StartQuery()
+            {
+                BranchCoverage.IncrementCoverage(52);
+
+                // Cannot start query
+                return false;
+            }
 		}
 	}
 }

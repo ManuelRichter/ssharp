@@ -97,10 +97,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			var constr = constraints.Select(constraint => constraint());
 			if(constr.Any(constraint => !constraint))
 			{
-                CodeCoverage.IncrementCoverage(100);
+                BranchCoverage.IncrementCoverage(47);
                 return false;
 			}
-            CodeCoverage.IncrementCoverage(103);
+            BranchCoverage.IncrementCoverage(45);
             return true;
 		}
 
@@ -109,15 +109,19 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			var canReconf = CheckConstraints(ReconfPossibleConstraints);
 			if(!canReconf)
 			{
-                CodeCoverage.IncrementCoverage(112);
+                BranchCoverage.IncrementCoverage(43);
                 ReconfigurationState = ReconfStates.Failed;
-				throw new Exception("No Reconfiguration Possible");
-			}
+#if faultCantReconf
+                throw new Exception("No Reconfiguration Possible");
+#else
+                return;
+#endif
+            }
 
 			var needReconf = CheckConstraints(AdjustmentNeededConstraints);
 			if(needReconf)
 			{
-                CodeCoverage.IncrementCoverage(120);
+                BranchCoverage.IncrementCoverage(41);
                 var oldActiveServerCount = Proxy.ActiveServerCount;
 				var oldServerFidelity = Proxy.CurrentServerFidelity;
 
@@ -127,7 +131,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 				if(oldActiveServerCount == Proxy.ActiveServerCount && oldServerFidelity == Proxy.CurrentServerFidelity && Proxy.AvgResponseTime > Model.LowResponseTimeValue)
 				{
 
-                    CodeCoverage.IncrementCoverage(130);
+                    BranchCoverage.IncrementCoverage(37);
                     ReconfigurationState = ReconfStates.Failed;
 					throw new Exception("Not reconfigured although it was possible");
 				}

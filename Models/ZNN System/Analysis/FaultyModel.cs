@@ -34,13 +34,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         public void AddFaultCondition(int faultNumber, int stepToActivate, int serverToFault)
         {
             fcs.Add(new FaultCondition(faultNumber, stepToActivate, serverToFault));
-            Console.WriteLine("Added Fault:" + faultNumber + " Step:" + stepToActivate + " Server:" + serverToFault);
+            //Console.WriteLine("Fault added:" + faultNumber + " Step:" + stepToActivate + " Server:" + serverToFault);
         }
 
         public void AddFaultCondition(FaultCondition fc)
         {
             this.fcs.Add(fc);
-            Console.WriteLine("Added Fault:" + fc.faultNumber + " Step:" + fc.stepToActivate + " Server:" + fc.serverToFault);
+            //Console.WriteLine("Fault added:" + fc.faultNumber + " Step:" + fc.stepToActivate + " Server:" + fc.serverToFault);
         }
     }
 }

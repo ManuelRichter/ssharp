@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using SafetySharp.Modeling;
+using SafetySharp.CaseStudies.ZNNSystem.Analysis;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 {
@@ -45,12 +46,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <summary>
 		/// Defines the value for high response time
 		/// </summary>
-		public static int HighResponseTimeValue = 12;
+		public static int HighResponseTimeValue = 20;
 
 		/// <summary>
 		/// Defines the value for low response time
 		/// </summary>
-		public static int LowResponseTimeValue = 11;
+		public static int LowResponseTimeValue = 10;
 
 		/// <summary>
 		/// Available Budget for server costs.
@@ -111,13 +112,15 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			// Add a few clients with Queries
 			for(int i = 0; i < clientCount; i++)
 			{
-				Query.GetNewQuery(new ClientT(new Random(i), Proxy));
+                BranchCoverage.IncrementCoverage(62);
+                Query.GetNewQuery(new ClientT(new Random(i), Proxy));
 			}
 
 			// Add a few server
 			for(int i = 0; i < serverCount; i++)
 			{
-				ServerT.GetNewServer(Proxy);
+                BranchCoverage.IncrementCoverage(61);
+                ServerT.GetNewServer(Proxy);
 			}
 		}
 

@@ -7,10 +7,10 @@ using System.Collections;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 {
-    public class CodeCoverage
+    public class BranchCoverage
     {
         public static double coverage = 0;
-        private static int branchCount = 36; //total count of branches
+        private static int branchCount = 72; //total count of branches
         private static ArrayList pastBranches = new ArrayList();
         private static int currentServer = 0;
 
