@@ -133,7 +133,9 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 
                     BranchCoverage.IncrementCoverage(37);
                     ReconfigurationState = ReconfStates.Failed;
-					throw new Exception("Not reconfigured although it was possible");
+#if CantReconf
+                    throw new Exception("Not reconfigured although it was possible");
+#endif
 				}
 			}
 		}

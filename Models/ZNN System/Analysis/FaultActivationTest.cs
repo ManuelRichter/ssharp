@@ -52,9 +52,9 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 Random r = new Random();
                 int seed = r.Next(1000);
 
-                TestFaultActivation(300, 20, 3, 3, seed, 100);
-                TestFaultActivation(300, 20, 3, 3, seed, 75);
-                TestFaultActivation(300, 20, 3, 3, seed, 25);
+                TestFaultActivation(500, 20, 3, 3, seed, 100);
+                TestFaultActivation(500, 20, 3, 3, seed, 75);
+                TestFaultActivation(500, 20, 3, 3, seed, 25);
             }
         }
 
@@ -282,11 +282,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         private void Feedback(ref QValue[] qTable, State currentState, Act currentAction)
         {
             double alpha = 0.5;
-            double gamma = 1;
+            double gamma = 0.99;
             QValue currentQ = new QValue(currentState, currentAction);
 
-            State nextState = new State(currentState.Copy());
-            nextState.SetFault(currentAction.GetFault(), true);
+            State nextState = new State(currentState,currentAction);
             QValue nextBestQ = new QValue(nextState, GetBestAction(ref qTable, nextState)); //Q(s_new,a_new)
 
             double reward = GetFinalReward();

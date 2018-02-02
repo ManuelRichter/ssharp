@@ -137,7 +137,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		private void Initialize(int maxServerUnits, ProxyT proxy)
 		{
 			MaxServerUnits = maxServerUnits;
-			ExecutingQueries = new List<Query>(MaxServerUnits);
+			ExecutingQueries = new List<Query>(MaxServerUnits+5);
 			Fidelity = EServerFidelity.High;
 			ConnectedProxy = proxy;
 			proxy.ConnectedServers.Add(this);

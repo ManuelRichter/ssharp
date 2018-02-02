@@ -36,7 +36,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <summary>
 		/// The cost of one server unit.
 		/// </summary>
-		public static int ServerUnitCost = 5;
+		public static int ServerUnitCost = 10;
 
 		/// <summary>
 		/// Available units per server
@@ -46,12 +46,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <summary>
 		/// Defines the value for high response time
 		/// </summary>
-		public static int HighResponseTimeValue = 20;
+		public static int HighResponseTimeValue = 7;
 
 		/// <summary>
 		/// Defines the value for low response time
 		/// </summary>
-		public static int LowResponseTimeValue = 10;
+		public static int LowResponseTimeValue = 6;
 
 		/// <summary>
 		/// Available Budget for server costs.
@@ -61,7 +61,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <summary>
 		/// Count of latest response times to be used for calculating averange response time
 		/// </summary>
-		public static int LastResponseCountForAvgTime = 10;
+		public static int LastResponseCountForAvgTime = 2;
 
 		/// <summary>
 		/// The Proxy

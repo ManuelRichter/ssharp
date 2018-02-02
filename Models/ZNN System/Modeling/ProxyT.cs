@@ -137,8 +137,9 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
                 var server = ConnectedServers.Where(s => s.IsServerActive).Aggregate((currMin, x) => ((currMin == null || x.Load < currMin.Load) ? x : currMin));
 				server.Deactivate();
 
-				// Add queries to active server
-				var queries = server.ExecutingQueries;
+                // Add queries to active server
+#if invalidOperation
+                var queries = server.ExecutingQueries;
 				var newServer = ConnectedServers.First(s => s.IsServerActive);
 				foreach(var query in queries)
 				{
@@ -146,12 +147,26 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 					query.SelectedServer = newServer;
 				}
 			} else BranchCoverage.IncrementCoverage(32);
+#else
+                var queries = server.ExecutingQueries;
+                var newServer = ConnectedServers.Last(s => s.IsServerActive);
+                if (!server.Equals(newServer)) //result of CantDeactivateServer fault
+                { 
+                    foreach (var query in queries)
+                    {
+                        newServer.ExecutingQueries.Add(query);
+                        query.SelectedServer = newServer;
+                    }
+                }
+            }
+            else BranchCoverage.IncrementCoverage(32);
+#endif
         }
 
-		/// <summary>
-		/// Switches the servers to text mode
-		/// </summary>
-		internal void SwitchServerToTextMode()
+            /// <summary>
+            /// Switches the servers to text mode
+            /// </summary>
+            internal void SwitchServerToTextMode()
 		{
             BranchCoverage.IncrementCoverage(30);
             SetAllServerFidelity(EServerFidelity.Low);
