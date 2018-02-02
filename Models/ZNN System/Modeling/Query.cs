@@ -95,6 +95,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 						 .Transition(
 							 from: EQueryState.QueryToProxy,
 							 to: EQueryState.QueryToServer,
+                             guard: Client.ConnectedProxy != null,
 							 action: () =>
 							 {
                                  BranchCoverage.IncrementCoverage(63);
@@ -103,7 +104,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 						 .Transition(
 							 from: EQueryState.QueryToServer,
 							 to: EQueryState.OnServer,
-							 guard: SelectedServer != null,
+							 guard: SelectedServer != null && Client.ConnectedProxy != null,
                              action: () =>
                              {
                                  BranchCoverage.IncrementCoverage(64);
@@ -111,7 +112,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 						 .Transition(
 							 from: EQueryState.OnServer,
 							 to: EQueryState.LowFidelityComplete,
-							 guard: SelectedServer.ExecuteQueryStep(this),
+							 guard: SelectedServer.ExecuteQueryStep(this) && Client.ConnectedProxy != null,
                              action: () =>
                              {
                                  BranchCoverage.IncrementCoverage(65);
@@ -119,7 +120,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
                          .Transition(
 							 from: EQueryState.LowFidelityComplete,
 							 to: EQueryState.MediumFidelityComplete,
-							 guard: SelectedServer.Fidelity != EServerFidelity.Low && SelectedServer.ExecuteQueryStep(this),
+							 guard: SelectedServer.Fidelity != EServerFidelity.Low && SelectedServer.ExecuteQueryStep(this) && Client.ConnectedProxy != null,
                              action: () =>
                              {
                                  BranchCoverage.IncrementCoverage(66);
@@ -127,7 +128,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
                          .Transition(
 							 from: EQueryState.MediumFidelityComplete,
 							 to: EQueryState.HighFidelityComplete,
-							 guard: SelectedServer.Fidelity != EServerFidelity.Medium && SelectedServer.ExecuteQueryStep(this),
+							 guard: SelectedServer.Fidelity != EServerFidelity.Medium && SelectedServer.ExecuteQueryStep(this) && Client.ConnectedProxy != null,
                              action: () =>
                              {
                                  BranchCoverage.IncrementCoverage(67);
@@ -135,7 +136,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
                          .Transition(
 							 from: EQueryState.LowFidelityComplete,
 							 to: EQueryState.ResToProxy,
-							 guard: SelectedServer.Fidelity == EServerFidelity.Low && SelectedServer.ExecuteQueryStep(this),
+							 guard: SelectedServer.Fidelity == EServerFidelity.Low && SelectedServer.ExecuteQueryStep(this) && Client.ConnectedProxy != null,
 							 action: () =>
 							 {
                                  BranchCoverage.IncrementCoverage(68);
@@ -144,7 +145,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 						 .Transition(
 							 from: EQueryState.MediumFidelityComplete,
 							 to: EQueryState.ResToProxy,
-							 guard: SelectedServer.Fidelity == EServerFidelity.Medium && SelectedServer.ExecuteQueryStep(this),
+							 guard: SelectedServer.Fidelity == EServerFidelity.Medium && SelectedServer.ExecuteQueryStep(this) && Client.ConnectedProxy != null,
 							 action: () =>
 							 {
                                  BranchCoverage.IncrementCoverage(69);
@@ -153,7 +154,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 						 .Transition(
 							 from: EQueryState.HighFidelityComplete,
 							 to: EQueryState.ResToProxy,
-							 guard: SelectedServer.ExecuteQueryStep(this),
+							 guard: SelectedServer.ExecuteQueryStep(this) && Client.ConnectedProxy != null,
 							 action: () =>
 							 {
                                  BranchCoverage.IncrementCoverage(70);
@@ -162,6 +163,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 						 .Transition(
 							 from: EQueryState.ResToProxy,
 							 to: EQueryState.ResToClient,
+                             guard: Client.ConnectedProxy != null,
                              action: () =>
                              {
                                  BranchCoverage.IncrementCoverage(71);
@@ -169,6 +171,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 						 .Transition(
 							 from: EQueryState.ResToClient,
 							 to: EQueryState.Completed,
+                             guard: Client.ConnectedProxy != null,
 							 action: () =>
 							 {
 								 Client.GetResponse();

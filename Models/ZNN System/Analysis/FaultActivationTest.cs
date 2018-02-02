@@ -47,34 +47,33 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         [Test]
         public void TestQLearner()
         {
-            Random r = new Random();
-            int seed = r.Next(1000);
+            for (int i = 0;i<20;i++)
+            { 
+                Random r = new Random();
+                int seed = r.Next(1000);
 
-            TestFaultActivation(500, 15, 1, 1, 2, 100);
-            TestFaultActivation(500, 15, 1, 1, 2, 75);
-            TestFaultActivation(500, 15, 1, 1, 2, 25);
-
-            //TestFaultActivation(300, 15, 3, 3, seed, 100);
-            //TestFaultActivation(300, 15, 3, 3, seed, 75);
-            //TestFaultActivation(300, 15, 3, 3, seed, 50);
+                TestFaultActivation(300, 20, 3, 3, seed, 100);
+                TestFaultActivation(300, 20, 3, 3, seed, 75);
+                TestFaultActivation(300, 20, 3, 3, seed, 25);
+            }
         }
 
-        private int modelCount = 300; //number of models to instantiate/equivalent to episode count
-        private int simSteps = 10; //number of steps to simulate
+        private int modelCount = 0; //number of models to instantiate/equivalent to episode count
+        private int simSteps = 0; //number of steps to simulate
 
-        private int serverCount = 1;
-        private int clientCount = 1;
+        private int serverCount = 0;
+        private int clientCount = 0;
         private int numberOfFaults = 7;
 
-        private int seed = 1;
-        private int epsilon = 50; //% exploration
+        private int seed = 0;
+        private int epsilon = 0; //% exploration
         
         public void TestFaultActivation(int episodes,int steps,int servers,int clients, int seed, int epsilon)
         {
             Init(episodes, steps, servers, clients, seed, epsilon);
             Console.WriteLine("Episodes:" + episodes + " steps:" + steps + " servers:" + servers + " clients:" + clients + " seed:" + seed + " e:" + epsilon);
 
-            Random rand = new Random(this.seed);
+            Random rand = new Random(seed);
             const int probToActivate = 100; //probability per step to activate the fault
 
             //const for qLearning
@@ -188,7 +187,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
             //Log sum and session
             if (logSeqReward) LogSeqToCSV(logSum);
-            if (logSession) LogSession(episodes,steps,servers,clients,seed,epsilon,seq,bestIndex,bestOfAllModels);
+            if (logSession) LogSession(episodes,steps,servers,clients,seed,epsilon,seq,bestIndex,bestOfAllModels,true);
             
             Console.WriteLine("End of TestFaultActivation, Best sequence: <" + seq + "> in episode:" + (bestIndex + 1) + " with " + bestOfAllModels);
         }
@@ -242,7 +241,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         private Act ChooseAction(Random rand, State state, ref QValue[] qTable,int indexEpisode)
         {
 
-            if (rand.Next(100) < epsilon && indexEpisode != modelCount-1) //forced exploitation in last episode
+            if (rand.Next(100) < epsilon) //forced exploitation in last episode
             {
                 return Explore(rand);
             }
@@ -283,7 +282,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         private void Feedback(ref QValue[] qTable, State currentState, Act currentAction)
         {
             double alpha = 0.5;
-            double gamma = 0.99;
+            double gamma = 1;
             QValue currentQ = new QValue(currentState, currentAction);
 
             State nextState = new State(currentState.Copy());
@@ -383,12 +382,22 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             File.WriteAllText(path, s.ToString());
         }
 
-        private void LogSession(int episodes, int steps, int servers, int clients, int seed, int epsilon, string seq,int bestEpisode, double bestReward)
+        private void LogSession(int episodes, int steps, int servers, int clients, int seed, int epsilon, string seq,int bestEpisode, double bestReward, bool asTable)
         {
-            string path = @".\..\..\..\Evaluation\Eval.csv";
-            string sa = "Epi:" + episodes + " step" + steps + " S:" + servers + " C:" + clients + " seed:" + seed + " e:" + epsilon + " ";
-            string sb = "" + seq + " in episode:" + (bestEpisode+1) + " with " + bestReward + " coverage\n";
+            string sa, sb;
+            string path;
 
+            if (asTable)
+            {
+                path = @".\..\..\..\Evaluation\EvalTable.csv";
+                sa = episodes + ";" + steps + ";" + servers + ";" + clients + ";" + seed + ";" + epsilon + "|";
+                sb = seq + ";" + (bestEpisode + 1) + ";" + bestReward + "\n";
+            } else
+            {
+                path = @".\..\..\..\Evaluation\Eval.csv";
+                sa = "Epi:" + episodes + " step" + steps + " S:" + servers + " C:" + clients + " seed:" + seed + "e:" + epsilon + " ";
+                sb = "" + seq + " in episode:" + (bestEpisode+1) + " with " + bestReward + " coverage\n";
+            }
             File.AppendAllText(path, sa + sb);
         }
 

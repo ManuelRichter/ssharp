@@ -186,6 +186,17 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
                 // Cannot start query
                 return false;
             }
-		}
+
+
+            public override void Update()
+            {
+                if (_IsResponseWaiting)
+                {
+                    _CurrentResponseTime++;
+                }
+                //no more proxy
+                ConnectedProxy = null;
+            }
+        }
 	}
 }
