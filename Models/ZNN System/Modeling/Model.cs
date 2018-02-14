@@ -51,7 +51,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <summary>
 		/// Defines the value for low response time
 		/// </summary>
-		public static int LowResponseTimeValue = 6;
+		public static int LowResponseTimeValue = 3;
 
 		/// <summary>
 		/// Available Budget for server costs.
@@ -112,14 +112,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			// Add a few clients with Queries
 			for(int i = 0; i < clientCount; i++)
 			{
-                BranchCoverage.IncrementCoverage(62);
                 Query.GetNewQuery(new ClientT(new Random(i), Proxy));
 			}
 
 			// Add a few server
 			for(int i = 0; i < serverCount; i++)
 			{
-                BranchCoverage.IncrementCoverage(61);
                 ServerT.GetNewServer(Proxy);
 			}
 		}

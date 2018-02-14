@@ -66,7 +66,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
         /// <summary>
         /// Random generator
         /// </summary>
-        [NonSerializable]
         private Random Random { get; }
 
 		/// <summary>
@@ -75,14 +74,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <param name="seed">Seed for random query start</param>
 		private ClientT(int seed = 0)
 		{
-			Random = new Random(seed);
-            BranchCoverage.IncrementCoverage(50);
+            Random = new Random(seed);
         }
 
         public ClientT(Random random, ProxyT proxy)
         {
-            BranchCoverage.IncrementCoverage(49);
-            Random = random;
+            Random = new Random();
             Connect(proxy);
         }
 
@@ -97,11 +94,9 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			client.Connect(proxy);
             if (client.ConnectedProxy != null)
             {
-                BranchCoverage.IncrementCoverage(48);
                 return client;
             }
-            BranchCoverage.IncrementCoverage(46);
-			return null;
+            return null;
 		}
 
 		/// <summary>
@@ -110,7 +105,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <param name="proxy">Connected Proxy</param>
 		protected virtual void Connect(ProxyT proxy)
 		{
-            BranchCoverage.IncrementCoverage(42);
             ConnectedProxy = proxy;
 			proxy.ConnectedClients.Add(this);
 		}
@@ -122,14 +116,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		{
 			if(CurrentQuery.State == EQueryState.Idle || CurrentQuery.State == EQueryState.Completed)
 			{
-				_IsResponseWaiting = true;
+                BranchCoverage.IncrementCoverage(38);
+                _IsResponseWaiting = true;
 				_CurrentResponseTime = 0;
 				//CurrentQuery = new Query(this);
 				CurrentQuery.IsExecute = true;
-                BranchCoverage.IncrementCoverage(38);
 				return true;
 			}
-            BranchCoverage.IncrementCoverage(36);
             return false;
 		}
 
@@ -150,15 +143,15 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		{
 			if(_IsResponseWaiting)
 			{
-				_CurrentResponseTime++;
                 BranchCoverage.IncrementCoverage(31);
+                _CurrentResponseTime = _CurrentResponseTime + 5;
             }
-			else //if(Random.Next(100) < 50)
+			else if(Random.Next(100) < 50)
 			{
-				StartQuery();
-                BranchCoverage.IncrementCoverage(29);
+			    BranchCoverage.IncrementCoverage(29);
+                StartQuery();
             }
-		}
+        }
 
 		/// <summary>
 		/// Prevents the server to connect to the proxy
@@ -172,8 +165,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
             /// <param name="proxy">Connected Proxy</param>
             protected override void Connect(ProxyT proxy)
 			{
-                BranchCoverage.IncrementCoverage(51);
-				// Cannot connect
+                // Cannot connect
 			}
 
             /// <summary>
@@ -182,7 +174,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
             public override bool StartQuery()
             {
                 BranchCoverage.IncrementCoverage(52);
-
                 // Cannot start query
                 return false;
             }
@@ -192,8 +183,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
             {
                 if (_IsResponseWaiting)
                 {
+                    BranchCoverage.IncrementCoverage(109);
                     _CurrentResponseTime++;
                 }
+                else BranchCoverage.IncrementCoverage(110);
                 //no more proxy
                 ConnectedProxy = null;
             }

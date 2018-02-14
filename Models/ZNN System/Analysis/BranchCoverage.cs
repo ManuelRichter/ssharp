@@ -10,18 +10,21 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
     public class BranchCoverage
     {
         public static double coverage = 0;
-        private static int branchCount = 104; //total count of branches
+        private static int totalBranchCount = 53; //total count of branches 
+        private static int branchCount = totalBranchCount;
         private static ArrayList pastBranches = new ArrayList();
         private static int currentServer = 0;
-
-        public static void IncrementCoverage(double weight)
-        {
-            coverage += weight;
-        }
+        private static bool isCovering = false;
+        private static int bestCov = 0;
+        private static double oldCoverage = 0;
 
         public static void IncrementCoverage(int nr)
         {
-            int id = nr + currentServer * 1000; // creates id with server and fault encoded
+            if (!isCovering) return;
+            if (bestCov < pastBranches.Count)
+                bestCov = pastBranches.Count;
+
+            int id = nr;// + currentServer * 1000; // creates id with server and fault encoded
             for (int i = 0; i < pastBranches.Count; i++)
             {
                 if ((int)pastBranches[i] == id)
@@ -31,19 +34,27 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             coverage++;
         }
 
+        public static void StartCovering()
+        {
+            isCovering = true;
+        }
+        
         public static void SetServer(int s)
         {
             currentServer = s;
         }
 
-        public static void ResetCoverage()
+        private static void ResetCoverage()
         {
             coverage = 0;
+            oldCoverage = 0;
         }
 
         public static void ResetPastBranches()
         { 
             pastBranches.Clear();
+            ResetCoverage();
+            branchCount = totalBranchCount;
         }
 
         public static double GetCoverage()
@@ -53,7 +64,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
         public static double GetReward()
         {
-            return coverage / branchCount;
+           
+            double c = (coverage - oldCoverage) / branchCount;
+            oldCoverage = coverage;
+            return c;
         }
     }
 }

@@ -15,6 +15,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             this.fault = fault;
         }
 
+        public State()
+        {
+            this.fault = new bool[] { false, false, false, false, false, false, false };
+        }
+
         public State(State c, Act a)
         {
             fault = c.Copy();

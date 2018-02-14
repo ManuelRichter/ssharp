@@ -75,8 +75,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 				() => Model.MaxBudget > 0,
 				() => Proxy.ConnectedServers.Count(s => s.IsServerDead) < Proxy.ConnectedServers.Count,
 			};
-
-
+            
 			AdjustmentNeededConstraints = new List<Func<bool>>
 			{
 				// Adjustment needed
@@ -107,8 +106,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		public override void Update()
 		{
 			var canReconf = CheckConstraints(ReconfPossibleConstraints);
-			if(!canReconf)
-			{
+            if (!canReconf)
+            {
                 BranchCoverage.IncrementCoverage(43);
                 ReconfigurationState = ReconfStates.Failed;
 #if faultCantReconf
@@ -117,6 +116,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
                 return;
 #endif
             }
+            else BranchCoverage.IncrementCoverage(112);
 
 			var needReconf = CheckConstraints(AdjustmentNeededConstraints);
 			if(needReconf)
@@ -128,16 +128,18 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 				Proxy.AdjustServers();
 				ReconfigurationState=ReconfStates.Succedded;
 
-				if(oldActiveServerCount == Proxy.ActiveServerCount && oldServerFidelity == Proxy.CurrentServerFidelity && Proxy.AvgResponseTime > Model.LowResponseTimeValue)
-				{
+                if (oldActiveServerCount == Proxy.ActiveServerCount && oldServerFidelity == Proxy.CurrentServerFidelity && Proxy.AvgResponseTime > Model.LowResponseTimeValue)
+                {
 
                     BranchCoverage.IncrementCoverage(37);
                     ReconfigurationState = ReconfStates.Failed;
 #if CantReconf
                     throw new Exception("Not reconfigured although it was possible");
 #endif
-				}
+                }
+                else BranchCoverage.IncrementCoverage(113);
 			}
-		}
+            else BranchCoverage.IncrementCoverage(130);
+        }
 	}
 }

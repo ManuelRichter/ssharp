@@ -102,7 +102,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <summary>
 		/// The current executing queries
 		/// </summary>
-		internal List<Query> ExecutingQueries { get; private set; }
+		internal List<Query> ExecutingQueries { get; set; }
 
 		/// <summary>
 		/// The connected Proxy
@@ -142,8 +142,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			ConnectedProxy = proxy;
 			proxy.ConnectedServers.Add(this);
 			IsInitialized = true;
-
-            BranchCoverage.IncrementCoverage(33);
+            
         }
 
 		/// <summary>
@@ -157,10 +156,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			server.Initialize(Model.DefaultAvailableServerUnits, proxy);
 			if(server.IsInitialized)
             {
-                BranchCoverage.IncrementCoverage(28);
 				return server;
             }
-            BranchCoverage.IncrementCoverage(27);
             return null;
 		}
 
@@ -181,7 +178,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 		/// <returns></returns>
 		public virtual bool Deactivate()
 		{
-            BranchCoverage.IncrementCoverage(23);
             AvailableServerUnits = 0;
 			return true;
 		}
@@ -248,7 +244,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Deactivate()
 			{
-                BranchCoverage.IncrementCoverage(54);
                 return false;
 			}
 		}
@@ -318,7 +313,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns>True if the query was executed</returns>
 			public override bool ExecuteQueryStep(Query query)
 			{
-                BranchCoverage.IncrementCoverage(56);
 				return false;
 			}
 
@@ -338,7 +332,6 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
 			/// <returns></returns>
 			public override bool Deactivate()
 			{
-                BranchCoverage.IncrementCoverage(58);
                 return false;
 			}
 
