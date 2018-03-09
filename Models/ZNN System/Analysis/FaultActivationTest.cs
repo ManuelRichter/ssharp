@@ -45,14 +45,15 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
 
         [Test]
-        public void TestQLearner()
+        public void TestLearner()
         {
             Random r = new Random();
-            
+
             for (int i = 0; i < 1; i++)
             {
                 int seed = r.Next(1000);
-                TestFaultActivation(300, 50, 3, 3, seed, 100);
+                TestFaultActivationViaQ(300, 50, 3, 3, seed, 100);
+                //TestFaultActivationViaSarsa(300, 50, 3, 3, seed, 100);
             }
         }
 
@@ -65,15 +66,19 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
         private int seed = 0;
         private double epsilon = 0; //% exploration
+        private bool decEpsilon = true;
+
+        private double alpha = 0.5;
+        private double gamma = 0.9;
 
         //logging
         private ArrayList logEpi = new ArrayList();
         double sum = 0;
 
-        public void TestFaultActivation(int episodes,int steps,int servers,int clients, int seed, int epsilon)
+        public void TestFaultActivationViaQ(int episodes, int steps, int servers, int clients, int seed, int epsilon)
         {
             Init(episodes, steps, servers, clients, seed, epsilon);
-            
+
             Random rand = new Random(seed);
 
             //const for qLearning
@@ -82,19 +87,19 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
             QValue[] qTable = new QValue[stateSize * actionSize]; //ca. 2600 entries
             FaultyModel[] fms = new FaultyModel[modelCount];
-            
+
             int indexEpisode = 0;
 
             //logging
             bool logSession = false;
             bool logEpisode = true;
-            
+
             //instantiate models
             for (int i = 0; i < modelCount; i++) fms[i] = new FaultyModel(new Model(clientCount, serverCount));
 
             //instatiate qTable
             InitQTable(ref qTable);
-            
+
             State currentState = new State();
 
             //simulate models
@@ -108,13 +113,13 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                     f.Activation = Activation.Suppressed;
 
                 BranchCoverage.StartCovering();
-                
+
                 for (int i = 0; i < simSteps; i++)
                 {
                     Act currentAction = ChooseAction(rand, currentState, ref qTable, indexEpisode);
                     //BranchCoverage.SetServer(currentAction.GetServer()); //to differentiate between servers
                     fm.AddFaultCondition(currentAction.ConvertToFC(i));  //use current step to activate
-                    
+
                     //activate fault
                     foreach (FaultCondition fc in fm.fcs)
                     {
@@ -126,11 +131,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
                     if (fm.model.ProxyObserver.ReconfigurationState == ReconfStates.Failed) break; //end episode
 
-                    Feedback(ref qTable, currentState, currentAction);
+                    FeedbackQ(ref qTable, currentState, currentAction);
                     currentState.SetFault(currentAction.GetFault(), true); //update state
-                    
+
                 }
                 //episode ends here
+                if (decEpsilon) epsilon = 100;
                 if (logEpisode) LogEpisodeToCSV(logEpi);
                 indexEpisode++;
                 Console.WriteLine("sum this episode:" + sum);
@@ -138,14 +144,14 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 //episode cleanup
                 currentState = new State();
                 BranchCoverage.ResetPastBranches();
-                
+
                 for (int i = 0; i < modelSim.Servers.Count; i++) Console.WriteLine("Completed Queries of server " + i + ": " + modelSim.Servers[i].QueryCompleteCount + " active:" + modelSim.Servers[i].IsServerActive + " dead:" + modelSim.Servers[i].IsServerDead);
 
             }
 
             //Log session
             //if (logSession) LogSession(episodes,steps,servers,clients,seed,epsilon,bestIndex,bestOfAllModels,true);
-            
+
             Console.WriteLine("End of TestFaultActivation");
         }
 
@@ -195,11 +201,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             }
         }
 
-        private Act ChooseAction(Random rand, State state, ref QValue[] qTable,int indexEpisode)
+        private Act ChooseAction(Random rand, State state, ref QValue[] qTable, int indexEpisode)
         {
-            //if (epsilon > 0.01) epsilon = epsilon - 0.02;
+            if (decEpsilon && epsilon > 0.01) epsilon = epsilon - 0.02;
 
-            if (rand.Next(100) < epsilon) 
+            if (rand.Next(100) < epsilon)
             {
                 return Explore(rand);
             }
@@ -236,14 +242,21 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             return qTable[bestIndex].GetAction();
         }
 
-        private void Feedback(ref QValue[] qTable, State currentState, Act currentAction)
+        private int GetQValueIndex(ref QValue[] qTable, QValue QtoLookfor)
         {
-            double alpha = 0.5;
-            double gamma = 0.9;
+            for (int i = 0; i < qTable.Length; i++) if (qTable[i].Equals(QtoLookfor))
+                    return i;
+
+            return -1;
+        }
+
+        private void FeedbackQ(ref QValue[] qTable, State currentState, Act currentAction)
+        {
             QValue currentQ = new QValue(currentState, currentAction);
 
-            State nextState = new State(currentState,currentAction);
-            QValue nextBestQ = new QValue(nextState, GetBestAction(ref qTable, nextState)); //Q(s_new,a_new)
+            State nextState = new State(currentState, currentAction);
+            int index = GetQValueIndex(ref qTable, new QValue(nextState, GetBestAction(ref qTable, nextState))); //Q(s_new,a_new)
+            QValue nextBestQ = qTable[index];
 
             double reward = BranchCoverage.GetReward();
             logEpi.Add(reward);
@@ -252,6 +265,27 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
             //Q_new(s,a) = Q(s,a) + alpha*(r + gamma*max_a_new(Q(s_new,a_new) - Q(s,a)))
             double newQ = currentQ.GetReward() + alpha * (reward + gamma * nextBestQ.GetReward() - currentQ.GetReward());
+            qTable[GetIndex(ref qTable, currentQ)].SetReward(newQ);
+        }
+
+        private void FeedbackSarsa(ref QValue[] qTable, State currentState, Act currentAction, Act nextAction)
+        {
+            QValue currentQ = new QValue(currentState, currentAction);
+
+            State nextState = new State(currentState, currentAction);
+            //QValue nextBestQ = new QValue(nextState, GetBestAction(ref qTable, nextState)); //Q(s_new,a_new)
+
+            int index = GetQValueIndex(ref qTable, new QValue(nextState, nextAction));
+            QValue nextQ = qTable[index];
+            double reward = BranchCoverage.GetReward();
+
+            logEpi.Add(reward);
+            sum = sum + reward;
+
+            Console.WriteLine(currentAction.ToString() + " reward: " + reward);
+
+            //Q_new(s,a) = Q(s,a) + alpha*(r + gamma*Q(s',a') - Q(s,a)))
+            double newQ = currentQ.GetReward() + alpha * (reward + gamma * nextQ.GetReward() - currentQ.GetReward());
             qTable[GetIndex(ref qTable, currentQ)].SetReward(newQ);
         }
 
@@ -301,7 +335,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             for (int i = 0; i < faults.Length; i++)
             {
                 if (faults[i].Name == faultname)
-                { 
+                {
                     if (counter == fc.serverToFault || faultname == "ServerSelectionFails") //ssf appeares only once in faults[]
                     {
                         faults[i].Activation = Activation.Forced;
@@ -323,18 +357,18 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
         private void LogQTableToCSV(ref QValue[] qTable, int episode)
         {
-            string path = @".\..\..\..\Evaluation\Episode" + episode +".csv";
+            string path = @".\..\..\..\Evaluation\Episode" + episode + ".csv";
             string[] output = new string[qTable.Length];
             StringBuilder s = new StringBuilder();
 
             for (int i = 0; i < qTable.Length; i++) output[i] = qTable[i].ToTable();
-            
+
             s.AppendLine(string.Join(";", output));
-            
+
             File.WriteAllText(path, s.ToString());
         }
 
-        private void LogSession(int episodes, int steps, int servers, int clients, int seed, int epsilon, string seq,int bestEpisode, double bestReward, bool asTable)
+        private void LogSession(int episodes, int steps, int servers, int clients, int seed, int epsilon, string seq, int bestEpisode, double bestReward, bool asTable)
         {
             string sa, sb;
             string path;
@@ -344,24 +378,107 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 path = @".\..\..\..\Evaluation\EvalTable.csv";
                 sa = episodes + ";" + steps + ";" + servers + ";" + clients + ";" + seed + ";" + epsilon + "|";
                 sb = seq + ";" + (bestEpisode + 1) + ";" + bestReward + "\n";
-            } else
+            }
+            else
             {
                 path = @".\..\..\..\Evaluation\Eval.csv";
                 sa = "Epi:" + episodes + " step" + steps + " S:" + servers + " C:" + clients + " seed:" + seed + "e:" + epsilon + " ";
-                sb = "" + seq + " in episode:" + (bestEpisode+1) + " with " + bestReward + " coverage\n";
+                sb = "" + seq + " in episode:" + (bestEpisode + 1) + " with " + bestReward + " coverage\n";
             }
             File.AppendAllText(path, sa + sb);
         }
 
         private void LogEpisodeToCSV(ArrayList episode)
         {
-            string path = @".\..\..\..\Evaluation\EpisodesRandom.csv";
+            string path = @".\..\..\..\Evaluation\EpisodesDecEpsG9.csv";
             string[] output = new string[episode.Count];
             StringBuilder s = new StringBuilder();
-            s.AppendLine(simSteps.ToString()+ ";" + modelCount.ToString());
+            s.AppendLine(simSteps.ToString() + ";" + modelCount.ToString());
             for (int i = 0; i < episode.Count; i++) s.AppendLine(episode[i].ToString());
-            
+
             File.WriteAllText(path, s.ToString());
+        }
+        
+        public void TestFaultActivationViaSarsa(int episodes, int steps, int servers, int clients, int seed, int epsilon)
+        {
+            Init(episodes, steps, servers, clients, seed, epsilon);
+
+            Random rand = new Random(seed);
+
+            //const for qLearning
+            int stateSize = 128; //2^7
+            int actionSize = numberOfFaults * serverCount;
+
+            QValue[] qTable = new QValue[stateSize * actionSize]; //ca. 2600 entries
+            FaultyModel[] fms = new FaultyModel[modelCount];
+
+            int indexEpisode = 0;
+
+            //logging
+            bool logSession = false;
+            bool logEpisode = true;
+
+            //instantiate models
+            for (int i = 0; i < modelCount; i++) fms[i] = new FaultyModel(new Model(clientCount, serverCount));
+
+            //instatiate qTable
+            InitQTable(ref qTable);
+
+            State currentState = new State();
+
+            //simulate models
+            foreach (FaultyModel fm in fms)
+            {
+                var simulator = new SafetySharpSimulator(fm.model);
+                var modelSim = (Model)simulator.Model;
+                double sumCoverage = 0;
+
+                foreach (Fault f in modelSim.Faults) f.Activation = Activation.Suppressed;
+
+                BranchCoverage.StartCovering();
+
+                Act nextAction;
+                Act currentAction = ChooseAction(rand, currentState, ref qTable, indexEpisode);
+               
+
+                for (int i = 0; i < simSteps; i++)
+                {
+                    //activate fault
+                    fm.AddFaultCondition(currentAction.ConvertToFC(i));  //use current step to activate
+                    foreach (FaultCondition fc in fm.fcs)
+                    {
+                        if (i == fc.stepToActivate) ChooseServerToFault(modelSim.Faults, fc);
+                    }
+
+                    //process fault
+                    simulator.SimulateStep();
+
+                    if (fm.model.ProxyObserver.ReconfigurationState == ReconfStates.Failed) break; //end episode
+
+                    nextAction = ChooseAction(rand, currentState, ref qTable, indexEpisode);
+
+                    FeedbackSarsa(ref qTable, currentState, currentAction, nextAction);
+                    currentState.SetFault(currentAction.GetFault(), true); //update state
+                    currentAction = nextAction;
+                }
+                //episode ends here
+                if (decEpsilon) epsilon = 100;
+                if (logEpisode) LogEpisodeToCSV(logEpi);
+                indexEpisode++;
+                Console.WriteLine("sum this episode:" + sum);
+                sum = 0;
+                //episode cleanup
+                currentState = new State();
+                BranchCoverage.ResetPastBranches();
+
+                for (int i = 0; i < modelSim.Servers.Count; i++) Console.WriteLine("Completed Queries of server " + i + ": " + modelSim.Servers[i].QueryCompleteCount + " active:" + modelSim.Servers[i].IsServerActive + " dead:" + modelSim.Servers[i].IsServerDead);
+
+            }
+
+            //Log session
+            //if (logSession) LogSession(episodes,steps,servers,clients,seed,epsilon,bestIndex,bestOfAllModels,true);
+
+            Console.WriteLine("End of TestFaultActivation");
         }
     }
 }

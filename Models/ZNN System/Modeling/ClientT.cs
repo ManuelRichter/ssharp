@@ -146,7 +146,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Modeling
                 BranchCoverage.IncrementCoverage(31);
                 _CurrentResponseTime = _CurrentResponseTime + 5;
             }
-			else if(Random.Next(100) < 50)
+			else //if(Random.Next(100) < 50)
 			{
 			    BranchCoverage.IncrementCoverage(29);
                 StartQuery();
