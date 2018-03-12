@@ -30,8 +30,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         {
             return reward;
         }
-
-        public string ToString()
+        
+        public override string ToString()
         {
             return state.ToString() + " " + action.ToString();
         }

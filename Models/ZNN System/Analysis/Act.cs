@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 {
@@ -32,6 +28,9 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             return "action:" + faultNumber + " server:" + serverToFault;
         }
 
+        /// <summary>
+        /// Converts an action to a fault condition so the model is able to use it
+        /// </summary>
         public FaultCondition ConvertToFC(int step)
         {
             return new FaultCondition(this.faultNumber,step,this.serverToFault);

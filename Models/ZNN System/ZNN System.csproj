@@ -64,6 +64,7 @@
     <Compile Include="Analysis\FaultActivationTest.cs" />
     <Compile Include="Analysis\FaultCondition.cs" />
     <Compile Include="Analysis\FunctionalTests.cs" />
+    <Compile Include="Analysis\LearningConstants.cs" />
     <Compile Include="Analysis\ProxyTTest.cs" />
     <Compile Include="Analysis\QueryTest.cs" />
     <Compile Include="Analysis\QValue.cs" />
