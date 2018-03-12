@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 {
-    class LearningConstants
+    class LearningParam
     {
         public int episodes = 0;
         public int steps = 0;
@@ -16,7 +16,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
         public bool switchToSarsa = false;
         public bool epsilonDecrements = false;
 
-        public LearningConstants(int episodes, int steps, double alpha, double gamma, double epsilon, bool switchToSarsa, bool epsilonDecrements)
+        public LearningParam(int episodes, int steps, double alpha, double gamma, double epsilon, bool switchToSarsa, bool epsilonDecrements)
         {
             this.episodes = episodes;
             this.steps = steps;

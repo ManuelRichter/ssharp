@@ -59,9 +59,7 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
         public string ToTable()
         {
-            //if (reward != 0)
-                return "State:" + "|" + this.state.ToString() + "|" + action.ToString() + "|" + reward + "|";
-            //return "";
+            return "State:" + "|" + this.state.ToString() + "|" + action.ToString() + "|" + reward + "|";
         }
     }
 }
