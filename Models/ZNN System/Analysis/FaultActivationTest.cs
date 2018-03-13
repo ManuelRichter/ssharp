@@ -9,18 +9,45 @@ using System.Text;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 {
+    /// <summary>
+    /// Uses the reinforcement learning algorithms QLearning and Sarsa to find the optimal sequence of faults of the model in regards to branch coverage
+    /// </summary>
     [TestFixture]
-    public class FaultActivationTest
+    public class LearningFaultActivationTest
     {
+        /// <summary>
+        /// The number of faults of the underlying model
+        /// </summary>
         private const int numberOfFaults = 7;
-        private LearningParam lc = new LearningParam(300, 50, 0.5, 0.2, 100, false, true);
+        
+        /// <summary>
+        /// Contains all parameters that are important for the learning procedure
+        /// </summary>
+        private LearningParam lc = new LearningParam(300, 50, 0.5, 0.9, 100, false, true);
+        
+        /// <summary>
+        /// One instance of the model with the number of clients and servers that should be simulated
+        /// </summary>
         private Model model = new Model(3,3);
         
-        //logging
+        /// <summary>
+        /// Activates/deactivates logging to csv-file
+        /// </summary>
         private bool isLogging = true;
+        
+        /// <summary>
+        /// Array with rewards of the current episode
+        /// </summary>
         private ArrayList logEpi = new ArrayList();
-        private double sumRewardEpisode = 0;
 
+        /// <summary>
+        /// Sum of all rewards of the current episode
+        /// </summary>
+        private double sumRewardEpisode = 0;
+        
+        /// <summary>
+        /// Runs an reinforcement learning algorithm on the model
+        /// </summary>
         [Test]
         public void TestLearner()
         {
@@ -33,11 +60,15 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             StartLearning(seed);
         }
 
+        /// <summary>
+        /// Commences the learning 
+        /// </summary>
+        /// <paramref name="seed"/> seed for the replication of results
         public void StartLearning(int seed)
         {
             Random rand = new Random(seed);
             
-            int stateSpaceSize = 128; //2^7
+            int stateSpaceSize = 128; //2^numberOfFaults
             int actionSpaceSize;
             if (model.Servers.Count > model.Clients.Count) actionSpaceSize = numberOfFaults * model.Servers.Count;
             else actionSpaceSize = numberOfFaults * model.Clients.Count;
@@ -45,12 +76,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             QValue[] qTable = new QValue[stateSpaceSize * actionSpaceSize];
             FaultyModel[] fms = new FaultyModel[lc.episodes];
 
-            InitModel(ref fms);
+            InitModels(ref fms);
             InitQTable(ref qTable);
 
             State currentState = new State();
 
-            //simulate models
+            //simulate models/episodes
             foreach (FaultyModel fm in fms)
             {
                 var simulator = new SafetySharpSimulator(fm.model);
@@ -62,11 +93,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 
                 if (lc.switchToSarsa)
                 {
-                    SimulateEpisodeSarsa(rand, ref qTable, currentState, fm, simulator, modelSim);
+                    SimulateEpisodeSarsa(rand, ref qTable, fm, simulator, modelSim);
                 }
                 else
                 {
-                    SimulateEpisodeQ(rand, ref qTable, currentState, fm, simulator, modelSim);
+                    SimulateEpisodeQ(rand, ref qTable, fm, simulator, modelSim);
                 }
                 
                 PrintEpisodeSummary(ref modelSim);
@@ -80,8 +111,18 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             Console.WriteLine("End of Test - seed:" + seed);
         }
 
-        private void SimulateEpisodeQ(Random rand,ref QValue[] qTable, State currentState, FaultyModel fm, SafetySharpSimulator simulator, Model modelSim)
+        /// <summary>
+        /// Uses the QLearning algorithm to update the QValue-Table and simulates all steps for one episode
+        /// </summary>
+        /// <paramref name="rand"/> the Random object with above mentioned seed
+        /// <paramref name="qTable"/> contains long term reward estimates of the state-action pairs
+        /// <paramref name="fm"/> containts the model that should be simulated
+        /// <paramref name="simulator"/> simulates the model steps
+        /// <param name="modelSim"/> contains the current simulated model
+        private void SimulateEpisodeQ(Random rand,ref QValue[] qTable, FaultyModel fm, SafetySharpSimulator simulator, Model modelSim)
         {
+            State currentState = new State();
+            
             for (int currentStep = 0; currentStep < lc.steps; currentStep++)
             {
                 Act currentAction = ChooseAction(ref qTable, rand, currentState);
@@ -96,7 +137,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 //process fault
                 simulator.SimulateStep();
 
-                if (fm.model.ProxyObserver.ReconfigurationState == ReconfStates.Failed) break; //end episode
+                //in case there are no more servers left to interact with end episode
+                if (fm.model.ProxyObserver.ReconfigurationState == ReconfStates.Failed) break;
 
                 FeedbackQ(ref qTable, currentState, currentAction);
                 currentState.SetFault(currentAction.GetFault(), true); //update state
@@ -104,8 +146,17 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             }//episode ends here
         }
 
-        private void SimulateEpisodeSarsa(Random rand, ref QValue[] qTable, State currentState, FaultyModel fm, SafetySharpSimulator simulator, Model modelSim)
+        /// <summary>
+        /// Uses the SARSA algorithm to update the QValue-Table and simulates all steps for one episode
+        /// </summary>
+        /// <paramref name="rand"/> the Random object with above mentioned seed
+        /// <paramref name="qTable"/> contains long term reward estimates of the state-action pairs
+        /// <paramref name="fm"/> containts the model that should be simulated
+        /// <paramref name="simulator"/> simulates the model steps
+        /// /// <param name="modelSim"/> contains the current simulated model
+        private void SimulateEpisodeSarsa(Random rand, ref QValue[] qTable, FaultyModel fm, SafetySharpSimulator simulator, Model modelSim)
         {
+            State currentState = new State();
             Act nextAction;
             Act currentAction = ChooseAction(ref qTable, rand, currentState);
 
@@ -121,7 +172,8 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 //process fault
                 simulator.SimulateStep();
 
-                if (fm.model.ProxyObserver.ReconfigurationState == ReconfStates.Failed) break; //end episode
+                //in case there are no more servers left to interact with end episode
+                if (fm.model.ProxyObserver.ReconfigurationState == ReconfStates.Failed) break;
 
                 nextAction = ChooseAction(ref qTable, rand, currentState);
 
@@ -131,8 +183,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             }
             //episode ends here
         }
-        
-        private void InitModel(ref FaultyModel[] fms)
+
+        /// <summary>
+        /// Instantiates a model for each episode
+        /// </summary>
+        private void InitModels(ref FaultyModel[] fms)
         {
             for (int i = 0; i < lc.episodes; i++)
             { 
@@ -140,11 +195,15 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             }
         }
 
+        /// <summary>
+        /// Initialises the QTable with default values
+        /// </summary>
         private void InitQTable(ref QValue[] qTable)
         {
             int i = 0;
             int maxSystems;
 
+            //as the list of client, proxy and server faults is mixed we have to get the max(clients,server)
             if (model.Servers.Count > model.Clients.Count) maxSystems = model.Servers.Count;
             else maxSystems = model.Clients.Count;
 
@@ -180,6 +239,12 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             }
         }
 
+        /// <summary>
+        /// Chooses the next action based on the epsilon-greedy approach
+        /// </summary>
+        /// <paramref name="qTable"/> contains long term reward estimates of the state-action pairs
+        /// <paramref name="rand"/> the Random object with above mentioned seed
+        /// <paramref name="state"/> contains the agents current state
         private Act ChooseAction(ref QValue[] qTable, Random rand, State state)
         {
             if (lc.epsilonDecrements && lc.epsilon > 0.01) lc.epsilon = lc.epsilon - 0.02;
@@ -191,25 +256,39 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             else return Exploit(ref qTable, state);
         }
 
+        /// <summary>
+        /// Chooses the next action randomly
+        /// </summary>
         private Act Explore(Random rand)
         {
             int fault = rand.Next(numberOfFaults);
-            
-            if (fault == 0)
+
+            //ConnectionToProxyFails is the only clientside fault
+            if (fault == 0) 
             {
                 int clients = rand.Next(model.Clients.Count);
                 return new Act(fault, clients);
             }
+            //else handle it like a serverside fault
             int server = rand.Next(model.Servers.Count);
             return new Act(fault,server);
         }
 
+        /// <summary>
+        /// Chooses the best action for the current state from the QTable 
+        /// </summary>
+        /// <paramref name="qTable"/> contains long term reward estimates of the state-action pairs
+        /// <paramref name="state"/> contains the agents current state
         private Act Exploit(ref QValue[] qTable, State state)
         {
             return GetBestAction(ref qTable, state);
         }
-        
-        //returns action with highest reward for given state
+
+        /// <summary>
+        /// Returns the action with the highest reward for a given state
+        /// </summary>
+        /// <paramref name="qTable"/> contains long term reward estimates of the state-action pairs
+        /// <paramref name="state"/> contains the agents current state
         private Act GetBestAction(ref QValue[] qTable, State state)
         {
             double maxReward = 0;
@@ -227,20 +306,32 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             return qTable[bestIndex].GetAction();
         }
 
-        private int GetIndexOfQValue(ref QValue[] qTable, QValue QtoLookfor)
+        /// <summary>
+        /// Returns the index of a given state-action pair
+        /// </summary>
+        /// <paramref name="qTable"/> contains long term reward estimates of the state-action pairs
+        /// <paramref name="QtoLookfor"/> the state-action pair to look for
+        private int GetIndex(ref QValue[] qTable, QValue qToLookFor)
         {
             for (int i = 0; i < qTable.Length; i++)
-                if (qTable[i].Equals(QtoLookfor)) return i;
-
+            {
+                if (qTable[i].Equals(qToLookFor)) return i;
+            }
             return -1;
         }
 
+        /// <summary>
+        /// Calculates the long term reward for the current state and the current action given he follows the best policy in the next step (QLearning)
+        /// </summary>
+        /// <paramref name="qTable"/> contains long term reward estimates of the state-action pairs
+        /// <paramref name="currentState"/> contains the agents current state
+        /// <paramref name="currentAction"/> contains the agents current used action
         private void FeedbackQ(ref QValue[] qTable, State currentState, Act currentAction)
         {
             QValue currentQ = new QValue(currentState, currentAction);
 
             State nextState = new State(currentState, currentAction);
-            int index = GetIndexOfQValue(ref qTable, new QValue(nextState, GetBestAction(ref qTable, nextState))); //Q(s_new,a_new)
+            int index = GetIndex(ref qTable, new QValue(nextState, GetBestAction(ref qTable, nextState))); //Q(s_new,a_new)
             QValue nextBestQ = qTable[index];
 
             double reward = BranchCoverage.GetReward();
@@ -255,13 +346,20 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             qTable[GetIndex(ref qTable, currentQ)].SetReward(newQ);
         }
 
+        /// <summary>
+        /// Calculates the long term reward for the current state, the current action and the next action (SARSA)
+        /// </summary>
+        /// <paramref name="qTable"/> contains long term reward estimates of the state-action pairs
+        /// <paramref name="currentState"/> contains the agents current state
+        /// <paramref name="currentAction"/> contains the agents current used action
+        /// <paramref name="currentState"/> contains the agents next action he is going to use
         private void FeedbackSarsa(ref QValue[] qTable, State currentState, Act currentAction, Act nextAction)
         {
             QValue currentQ = new QValue(currentState, currentAction);
 
             State nextState = new State(currentState, currentAction);
 
-            int index = GetIndexOfQValue(ref qTable, new QValue(nextState, nextAction));
+            int index = GetIndex(ref qTable, new QValue(nextState, nextAction));
             QValue nextQ = qTable[index];
             double reward = BranchCoverage.GetReward();
 
@@ -275,18 +373,11 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             qTable[GetIndex(ref qTable, currentQ)].SetReward(newQ);
         }
 
-        private int GetIndex(ref QValue[] qTable, QValue q)
-        {
-            for (int i = 0; i < qTable.Length; i++)
-            {
-                if (qTable[i].Equals(q)) return i;
-            }
-            return -1;
-        }
-
         /// <summary>
-        /// activates the fault for a specific server
+        /// Activates the fault fc for a specific server
         /// </summary>
+        /// <paramref name="faults"/> list of all faults 
+        /// <paramref name="fc"/> the fault that should be activated
         private static void ChooseServerToFault(Fault[] faults, FaultCondition fc)
         {
             string faultname = "";
@@ -331,12 +422,18 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 }
             }
         }
-        
+
+        /// <summary>
+        /// Loggs the rewards per episode to a csv-file
+        /// </summary>
         private void Logging()
         {
             if (isLogging) LogEpisodeToCSV(logEpi);
         }
 
+        /// <summary>
+        /// Outputs information about cumulative reward of an episode and server status
+        /// </summary>
         private void PrintEpisodeSummary(ref Model modelSim)
         {
             Console.WriteLine("sum this episode:" + sumRewardEpisode);
@@ -344,6 +441,9 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             sumRewardEpisode = 0;
         }
 
+        /// <summary>
+        /// Outputs the current qTable
+        /// </summary>
         private void PrintQTable(ref QValue[] qTable)
         {
             for (int i = 0; i < qTable.Length; i++)
@@ -351,19 +451,26 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
                 Console.WriteLine(qTable[i].ToTable());
             }
         }
-        
+
+        /// <summary>
+        /// Logs the rewards of an episode to a csv-file
+        /// </summary>
         private void LogEpisodeToCSV(ArrayList episode)
         {
             string path = FormatPath();
 
             string[] output = new string[episode.Count];
             StringBuilder s = new StringBuilder();
+
             s.AppendLine(lc.steps.ToString() + ";" + lc.episodes.ToString());
             for (int i = 0; i < episode.Count; i++) s.AppendLine(episode[i].ToString());
 
             File.WriteAllText(path, s.ToString());
         }
 
+        /// <summary>
+        /// Generates the path to the csv file in dependence of learning parameters for easier evaluation
+        /// </summary>
         private string FormatPath()
         {
             string path = @".\..\..\..\Evaluation\";

@@ -6,19 +6,34 @@ using System.Threading.Tasks;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 {
+    /// <summary>
+    /// A Faultcondition contains all information needed to activate a fault
+    /// </summary>
     class FaultCondition
     {
-        public int faultNumber;  //number of the fault to activate
-        public int stepToActivate; //steps till activation of the fault
-        public int serverToFault; //
-        public bool faultActivated; //true if the fault has been activated 
+        /// <summary>
+        /// Every fault has his number (see ChooseServerToFault())
+        /// </summary>
+        public int faultNumber;
 
+        /// <summary>
+        /// Wait till stepToActivate to activate the fault
+        /// </summary>
+        public int stepToActivate;
+
+        /// <summary>
+        /// Chooses the server on which the fault occurs
+        /// </summary>
+        public int serverToFault; 
+        
+        /// <summary>
+        /// creates an instance
+        /// </summary>
         public FaultCondition(int faultNumber, int stepToActivate, int serverToFault)
         {
             this.faultNumber = faultNumber;
             this.stepToActivate = stepToActivate;
             this.serverToFault = serverToFault;
-            this.faultActivated = false; //not used?
         }
 
         public string ToString()

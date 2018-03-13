@@ -8,11 +8,13 @@ using SafetySharp.CaseStudies.ZNNSystem.Modeling;
 
 namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
 {
+    /// <summary>
+    /// Contains the model and the set of all activated or soon to be activated fault conditions
+    /// </summary>
     class FaultyModel
     {
         public Model model;
         public ArrayList fcs;
-        public double bestReward = 0;
         
         public FaultyModel(Model m)
         {
@@ -20,22 +22,10 @@ namespace SafetySharp.CaseStudies.ZNNSystem.Analysis
             fcs = new ArrayList();
         }
 
-        public ArrayList GetFaultArray()
-        {
-            return fcs;
-        }
-
         /// <summary>
         /// Adds a condition to activate a fault on a server at a specific step
         /// </summary>
-        /// <param name="faultNumber">number of the fault to activate</param>
-        /// <param name="stepToActivate">number of steps to wait till activation of the fault</param>
-        /// <param name="serverToFault">number of the server on which the fault should be activated</param>
-        public void AddFaultCondition(int faultNumber, int stepToActivate, int serverToFault)
-        {
-            fcs.Add(new FaultCondition(faultNumber, stepToActivate, serverToFault));
-        }
-
+        /// <param name="fc"> the fault which should be activated</param>
         public void AddFaultCondition(FaultCondition fc)
         {
             this.fcs.Add(fc);
